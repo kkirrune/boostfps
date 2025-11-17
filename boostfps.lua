@@ -1,6 +1,6 @@
 --========================================================--
--- BOOST FPS HUB V5 – FIX LỖI GIAO DIỆN TRỐNG (Final Check)
--- Tăng cường kiểm tra lỗi tải Linoria UI.
+-- BOOST FPS HUB V6 – FIX LỖI CRASH TOPBAR (Final Fix)
+-- Tăng cường kiểm tra an toàn sau khi tạo UI Window.
 --========================================================--
 
 --// Services
@@ -66,9 +66,7 @@ LoadSettings()
 --  LANGUAGES (Giữ nguyên)
 --========================================================--
 
--- Đã lược bỏ chi tiết ngôn ngữ tại đây để tập trung vào phần Fix lỗi UI.
--- Giữ nguyên cấu trúc LangFullNames, LangCodes, LangDisplayNames.
-
+-- [Các định nghĩa ngôn ngữ Lang, LangFullNames, LangCodes, LangDisplayNames giữ nguyên]
 local Lang = {
     ["VN"] = {
         title = "TĂNG TỐC FPS HUB", group_opt = "Tối Ưu Hiệu Năng", group_gfx = "Giảm Đồ Họa Nâng Cao", group_settings = "Cài Đặt & Điều Khiển",
@@ -88,33 +86,20 @@ local Lang = {
 }
 
 local LangFullNames = {
-    {"VN", "VN Tiếng Việt"},
-    {"EN", "EN English"},
-    {"JP", "JP 日本語 (Japanese)"},
-    {"KR", "KR 한국어 (Korean)"},
-    {"PT", "PT Português"},
-    {"ES", "ES Español"},
-    {"FR", "FR Français"},
-    {"DE", "DE Deutsch"},
-    {"IT", "IT Italiano"},
-    {"RU", "RU Русский (Russian)"},
-    {"ZH", "ZH 中文 (Chinese)"},
-    {"KO", "KO 한국어 (Korean)"},
+    {"VN", "VN Tiếng Việt"}, {"EN", "EN English"}, {"JP", "JP 日本語 (Japanese)"}, {"KR", "KR 한국어 (Korean)"},
+    {"PT", "PT Português"}, {"ES", "ES Español"}, {"FR", "FR Français"}, {"DE", "DE Deutsch"},
+    {"IT", "IT Italiano"}, {"RU", "RU Русский (Russian)"}, {"ZH", "ZH 中文 (Chinese)"}, {"KO", "KO 한국어 (Korean)"},
 }
 
 local LangCodes = {}
-for _, pair in ipairs(LangFullNames) do
-    table.insert(LangCodes, pair[1])
-end
+for _, pair in ipairs(LangFullNames) do table.insert(LangCodes, pair[1]) end
 
 local LangDisplayNames = {}
-for _, pair in ipairs(LangFullNames) do
-    table.insert(LangDisplayNames, pair[2])
-end
+for _, pair in ipairs(LangFullNames) do table.insert(LangDisplayNames, pair[2]) end
 
 
 --========================================================--
---  LINORIA UI LIBRARY (FIXED LOAD VÀ KIỂM TRA MẠNH)
+--  LINORIA UI LIBRARY (Đã Fix Lỗi Tạo UI)
 --========================================================--
 
 local function LoadLinoriaComponent(url, name)
@@ -131,7 +116,6 @@ local function LoadLinoriaComponent(url, name)
         return nil
     end
 
-    -- Sử dụng pcall để chạy component an toàn
     local success, result = pcall(component)
     if not success then
         print("Linoria Runtime Error: Khởi tạo " .. name .. " thất bại: " .. tostring(result))
@@ -143,44 +127,51 @@ end
 
 local Library = LoadLinoriaComponent("https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/Library.lua", "Library")
 
--- >>>>> BƯỚC KIỂM TRA AN TOÀN MỚI <<<<<
+-- >>>>> BƯỚC KIỂM TRA AN TOÀN SAU KHI TẢI THƯ VIỆN <<<<<
 if not Library or typeof(Library.CreateWindow) ~= "function" then
-    local errorMessage = "[BoostFPS Hub v5] FATAL ERROR: Linoria Library không thể tải hoặc không hợp lệ. Vui lòng kiểm tra kết nối Executor/Internet."
-    print(errorMessage)
-    -- Thử tạo một TextLabel đơn giản để thông báo lỗi trên màn hình
+    local errorMessage = "[BoostFPS Hub v6] FATAL ERROR: Linoria Library không thể tải hoặc không hợp lệ. Vui lòng kiểm tra kết nối Executor/Internet."
+    warn(errorMessage)
+    
+    -- Tạo thông báo lỗi đơn giản trên màn hình
     local ErrorLabel = Instance.new("TextLabel")
-    ErrorLabel.Text = "FATAL ERROR: LINORIA UI FAILED TO LOAD. Check console for details."
+    ErrorLabel.Text = "Linoria UI FAILED TO LOAD. Check console (F9)."
     ErrorLabel.Size = UDim2.new(0.5, 0, 0, 50)
     ErrorLabel.Position = UDim2.new(0.25, 0, 0.4, 0)
     ErrorLabel.Font = Enum.Font.SourceSansBold
-    ErrorLabel.TextColor3 = Color3.new(1, 0, 0) -- Màu đỏ
+    ErrorLabel.TextColor3 = Color3.new(1, 0, 0) 
     ErrorLabel.Parent = game.CoreGui
-    wait(10)
-    ErrorLabel:Destroy()
-    return -- DỪNG SCRIPT ngay lập tức
+    
+    delay(5, function() ErrorLabel:Destroy() end)
+    return -- DỪNG SCRIPT ngay lập tức, tránh lỗi TopBar
 end
 
 pcall(Library.SetTheme, Library, "Default")
 
-local UI = Library:CreateWindow({
-    Title = Lang[Settings.Language].title .. "  |  V5",
+-- Cố gắng tạo UI Window
+local UI = pcall(Library.CreateWindow, Library, {
+    Title = Lang[Settings.Language].title .. "  |  V6",
     Center = true,
     AutoShow = true,
     Size = Settings.ResizeMode == "Full" and UI_Size or UI_Size_Small,
 })
 
--- >>>>> BƯỚC KIỂM TRA MỚI: Đảm bảo UI object được tạo thành công <<<<<
-if not UI or typeof(UI.MainFrame) ~= "Instance" then
-    print("[BoostFPS Hub v5] FATAL ERROR: UI Window không được tạo. Có thể do Executor Block UI.")
-    return
+-- Lấy kết quả UI ra ngoài
+local success, UI_Result = UI[1], UI[2]
+local UI_Window = success and UI_Result or nil
+
+-- >>>>> BƯỚC KIỂM TRA AN TOÀN SAU KHI TẠO WINDOW <<<<<
+if not UI_Window or typeof(UI_Window.MainFrame) ~= "Instance" then
+    warn("[BoostFPS Hub v6] FATAL ERROR: UI Window không được tạo. Executor chặn UI?")
+    return -- DỪNG SCRIPT, tránh lỗi TopBar
 end
 
+local UI = UI_Window -- Đảm bảo biến UI là Window object hợp lệ
 
 --========================================================--
---  TOP BAR BUTTONS (Giữ nguyên)
+--  TOP BAR BUTTONS (Bây giờ đã an toàn)
 --========================================================--
 
-local TopBar = UI.MainFrame.TopBar
+local TopBar = UI.MainFrame.TopBar -- Dòng này sẽ không còn bị lỗi nếu các check trên thành công
 
 -- Nút Đóng (X)
 local CloseBtn = Instance.new("TextButton")
@@ -230,7 +221,7 @@ ResizeBtn.MouseButton1Click:Connect(function()
 end)
 
 --========================================================--
---  TABS (Bây giờ đã an toàn hơn)
+--  TABS (Giữ nguyên)
 --========================================================--
 
 local MainTab = UI:AddTab("⚡ " .. Lang[Settings.Language].group_opt)
@@ -534,5 +525,5 @@ if Settings.ResizeMode == "Compact" then
     SetResizeMode("Compact")
 end
 
-Library:Notify("BOOST FPS HUB V5 LOADED ✔", 5)
-print("[BoostFPS Hub v5 - MAX FEATURES] Loaded. Locale:", Settings.Language)
+Library:Notify("BOOST FPS HUB V6 LOADED ✔", 5)
+print("[BoostFPS Hub v6 - FINAL STABLE] Loaded. Locale:", Settings.Language)
