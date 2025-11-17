@@ -1,135 +1,99 @@
---[[
-BoostFPS Hub v2 — Full Multilingual + VIP Safe Anti-Crash + Hub-style UI
-Author: generated for kkirru
-Description:
-- Universal client-side FPS optimizer. Safe-mode first: tries NOT to modify gameplay objects.
-- Multi-language, Theme presets, Rayfield-like hub UI, Mobile-friendly, Drag & Drop, Scrolling,
-  Smart Anti-Ban (randomized delays + action splitting), VIP Aggressive Safe Mode,
-  Auto-scale on PC/Mobile, FPS counter, Toggle UI by RightControl.
-- IMPORTANT: This script only changes client visuals; it does not call external services.
-- Use at your own risk. Some games with strong server-side anti-cheat may still detect visual changes.
---]]
+-- BoostFPS Hub v2 - Linoria-style Dark UI (Full)
+-- Multi-language (default EN), Drag+Drop, Tabs, Scrolling, Mobile friendly
+-- Aggressive visual reduction (safe-first heuristics), Smart anti-ban delays
+-- Author: generated for kkirru — customize Config below
 
--- ========== CONFIG ==========
+-- ================= CONFIG =================
 local Config = {
-    ThemePresets = {
-        Dark = {
-            Background = Color3.fromRGB(12,16,18),
-            Panel = Color3.fromRGB(20,26,28),
-            Accent = Color3.fromRGB(84,176,160),
-            ToggleON = Color3.fromRGB(76,175,80),
-            ToggleOFF = Color3.fromRGB(75,85,99),
-            Text = Color3.fromRGB(235,235,235),
-            SubText = Color3.fromRGB(155,165,165)
-        },
-        Slate = {
-            Background = Color3.fromRGB(18,22,26),
-            Panel = Color3.fromRGB(28,34,38),
-            Accent = Color3.fromRGB(96,150,255),
-            ToggleON = Color3.fromRGB(90,200,255),
-            ToggleOFF = Color3.fromRGB(80,86,94),
-            Text = Color3.fromRGB(240,240,245),
-            SubText = Color3.fromRGB(165,175,180)
-        }
+    Theme = {
+        Background = Color3.fromRGB(18,22,25),
+        Panel = Color3.fromRGB(24,30,34),
+        Accent = Color3.fromRGB(86,145,255),
+        Accent2 = Color3.fromRGB(84,176,160),
+        Text = Color3.fromRGB(232,236,240),
+        SubText = Color3.fromRGB(150,160,170),
+        WindowRadius = 8,
     },
-    DefaultTheme = "Dark",
-    LanguageDefault = "en",
+    LanguageDefault = "en", -- DEFAULT LANGUAGE = EN
+    AutoDetectLocale = true,
     AntiBan = {
-        MinDelay = 0.04,
-        MaxDelay = 0.16,
-        BatchSize = 80,
-        Jitter = 0.03
+        MinDelay = 0.03,
+        MaxDelay = 0.12,
+        BatchSize = 100,
+        Jitter = 0.025,
     },
-    AutoDetectMobile = true,
-    AntiCrashInterval = 28, -- seconds
+    AggressiveDepth = 2, -- 0 = mild, 1 = strong, 2 = extreme-safe
+    MobileScale = 1.12,
+    IsVIP = false, -- set to true locally to enable VIP aggressive extras
+    ToggleKey = Enum.KeyCode.RightControl,
     DefaultRenderDistance = (workspace:FindFirstChild("StreamingTargetRadius") and workspace.StreamingTargetRadius) or 512,
-    IsVIP = false, -- local toggle for VIP aggressive features
-    UI = {
-        Width = 420,
-        Height = 420,
-        MobileScale = 1.15,
-        ToggleKey = Enum.KeyCode.RightControl
-    }
+    AntiCrashInterval = 24,
 }
 
--- ========== LOCALES ==========
+-- ================= LOCALES (EN default, VI included) =================
 local LANGS = {
     en = {
-        Title="BoostFPS Hub",
-        Hint="Safe visuals optimizer (client-only)",
-        BoostAll="APPLY MAX BOOST (SAFE)",
-        Restore="RESTORE",
-        FPS="FPS: %d",
-        RenderValue="Render Radius: %d",
-        AntiCrashOn="[AntiCrash] Enabled",
-        AntiCrashDo="[AntiCrash] Cleared cache + GC",
-        AggressiveOn="[VIP] Aggressive Safe Mode ON",
-        ToggleUI="Toggle UI",
-        Particles="Disable Particles/FX",
-        Lights="Disable Lights",
-        Textures="Hide Decals/Textures",
-        Materials="Reduce Materials -> Plastic",
-        Mesh="Optimize MeshParts",
-        Post="Disable Post-Processing",
-        Fog="Disable Fog",
-        Shadows="Disable Shadows",
-        Foliage="Hide Foliage",
-        Sounds="Mute Workspace Sounds",
-        AntiCrash="Anti-Crash (Auto Clear & GC)",
-        VIP="Apply VIP Aggressive Safe Mode",
-        RenderSlider="Render Radius (Left/Right)",
+        Title = "BoostFPS Hub",
+        Hint = "Safe visuals optimizer · PC & Mobile",
+        BoostAll = "APPLY MAX BOOST (SAFE)",
+        Restore = "RESTORE (Revert All)",
+        FPS = "FPS: %d",
+        RenderValue = "Render Radius: %d",
+        ToggleUI = "Toggle UI",
+        Particles = "Disable Particles / FX",
+        Lights = "Disable Lights",
+        Textures = "Hide Decals / Textures",
+        Materials = "Reduce Materials -> Plastic",
+        Mesh = "Strip Mesh Textures",
+        Post = "Disable Post-Processing",
+        Fog = "Disable Fog",
+        Shadows = "Disable Shadows",
+        Foliage = "Hide Foliage",
+        Sounds = "Mute Workspace Sounds",
+        AntiCrash = "Anti-Crash (Auto Clear + GC)",
+        VIP = "Apply VIP Aggressive Mode",
+        AggressiveApplied = "[VIP] Aggressive Mode Applied",
+        AntiCrashDo = "[AntiCrash] Cleared cache + GC",
     },
     vi = {
-        Title="BoostFPS Hub",
-        Hint="Tối ưu đồ họa an toàn (client-only)",
-        BoostAll="BẬT TĂNG TỐI ĐA (AN TOÀN)",
-        Restore="KHÔI PHỤC",
-        FPS="FPS: %d",
-        RenderValue="Khoảng cách render: %d",
-        AntiCrashOn="[AntiCrash] Đang bật",
-        AntiCrashDo="[AntiCrash] Clear cache + GC",
-        AggressiveOn="[VIP] Chế độ giảm mạnh (AN TOÀN) BẬT",
-        ToggleUI="Hiện/Ẩn UI",
-        Particles="Tắt Particles/FX",
-        Lights="Tắt Đèn",
-        Textures="Ẩn Decals/Textures",
-        Materials="Giảm Material -> Plastic",
-        Mesh="Tối ưu MeshParts",
-        Post="Tắt Post-Processing",
-        Fog="Tắt Sương (Fog)",
-        Shadows="Tắt Shadows",
-        Foliage="Ẩn cây cỏ",
-        Sounds="Tắt âm workspace",
-        AntiCrash="Anti-Crash (Clear+GC tự động)",
-        VIP="Áp dụng VIP Aggressive Safe Mode",
-        RenderSlider="Khoảng cách render (←/→)",
-    },
-    es = { Title="BoostFPS Hub", Hint="Optimizaciones seguras (cliente)", BoostAll="APLICAR MÁXIMO", Restore="RESTABLECER", FPS="FPS: %d", RenderValue="Radio Render: %d", AntiCrashOn="[AntiCrash] Activado", AntiCrashDo="[AntiCrash] Caché limpiada", AggressiveOn="[VIP] Agresivo ON", ToggleUI="Alternar UI", Particles="Desactivar Partículas", Lights="Desactivar Luces", Textures="Ocultar Texturas", Materials="Reducir Materiales", Mesh="Optimizar MeshParts", Post="Desactivar PostProcess", Fog="Desactivar Niebla", Shadows="Desactivar Sombras", Foliage="Ocultar Vegetación", Sounds="Silenciar Sonidos", AntiCrash="Anti-Crash", VIP="Aplicar Modo VIP" },
-    fr = { Title="BoostFPS Hub", Hint="Optimisations sûres (client)", BoostAll="APPLIQUER MAX", Restore="RÉTABLIR", FPS="FPS: %d", RenderValue="Rayon rendu: %d", AntiCrashOn="[AntiCrash] Activé", AntiCrashDo="[AntiCrash] Cache nettoyée", AggressiveOn="[VIP] Aggressif ON", ToggleUI="Afficher UI", Particles="Désactiver Particules", Lights="Désactiver Lumières", Textures="Masquer Textures", Materials="Réduire Matériaux", Mesh="Optimiser MeshParts", Post="Désactiver PostProcess", Fog="Désactiver Brouillard", Shadows="Désactiver Ombres", Foliage="Masquer Végétation", Sounds="Couper Sons", AntiCrash="Anti-Crash", VIP="Appliquer VIP" },
-    ru = { Title="BoostFPS Hub", Hint="Безопасная оптимизация", BoostAll="ПРИМЕНИТЬ МАКС", Restore="ВОССТАНОВИТЬ", FPS="FPS: %d", RenderValue="Радиус рендера: %d", AntiCrashOn="[AntiCrash] Включено", AntiCrashDo="[AntiCrash] Кэш очищен", AggressiveOn="[VIP] Агрессивный ON", ToggleUI="Переключить UI", Particles="Отключить Частицы", Lights="Отключить Свет", Textures="Скрыть Текстуры", Materials="Уменьшить Материалы", Mesh="Оптимизировать Mesh", Post="Отключить PostProcess", Fog="Отключить Туман", Shadows="Отключить Тени", Foliage="Скрыть Растительность", Sounds="Выключить Звуки", AntiCrash="Anti-Crash", VIP="Применить VIP" },
-    zh = { Title="BoostFPS Hub", Hint="安全优化（客户端）", BoostAll="应用最大优化", Restore="恢复", FPS="FPS: %d", RenderValue="渲染半径: %d", AntiCrashOn="[AntiCrash] 已启用", AntiCrashDo="[AntiCrash] 清除缓存", AggressiveOn="[VIP] 激进模式 ON", ToggleUI="切换 UI", Particles="关闭 粒子", Lights="关闭 灯光", Textures="隐藏 贴图", Materials="降低 材质", Mesh="优化 Mesh", Post="关闭 后处理", Fog="关闭 雾效", Shadows="关闭 阴影", Foliage="隐藏 植被", Sounds="静音 声音", AntiCrash="Anti-Crash", VIP="应用 VIP" },
-    ja = { Title="BoostFPS Hub", Hint="安全な最適化 (クライアント)", BoostAll="最大ブースト適用", Restore="復元", FPS="FPS: %d", RenderValue="レンダ距離: %d", AntiCrashOn="[AntiCrash] 有効", AntiCrashDo="[AntiCrash] キャッシュクリア", AggressiveOn="[VIP] アグレッシブ ON", ToggleUI="UI 切替", Particles="パーティクル無効", Lights="ライト無効", Textures="テクスチャ非表示", Materials="マテリアル低減", Mesh="メッシュ最適化", Post="ポスト処理無効", Fog="フォグ無効", Shadows="影無効", Foliage="植生非表示", Sounds="サウンドミュート", AntiCrash="Anti-Crash", VIP="VIP 適用" },
-    ko = { Title="BoostFPS Hub", Hint="안전한 최적화 (클라이언트)", BoostAll="최대 부스트 적용", Restore="복구", FPS="FPS: %d", RenderValue="렌더 반경: %d", AntiCrashOn="[AntiCrash] 활성화", AntiCrashDo="[AntiCrash] 캐시 삭제", AggressiveOn="[VIP] 공격적 ON", ToggleUI="UI 토글", Particles="파티클 끄기", Lights="라이트 끄기", Textures="텍스처 숨기기", Materials="재질 감소", Mesh="메시 최적화", Post="포스트 처리 끄기", Fog="포그 끄기", Shadows="그림자 끄기", Foliage="식생 숨기기", Sounds="사운드 음소거", AntiCrash="Anti-Crash", VIP="VIP 적용" },
-    ar = { Title="BoostFPS Hub", Hint="تحسينات آمنة (العميل)", BoostAll="تطبيق أقصى تحسين", Restore="استعادة", FPS="FPS: %d", RenderValue="نطاق العرض: %d", AntiCrashOn="[AntiCrash] مفعل", AntiCrashDo="[AntiCrash] تم تنظيف الكاش", AggressiveOn="[VIP] الوضع العدواني ON", ToggleUI="تبديل الواجهة", Particles="تعطيل الجسيمات", Lights="تعطيل الأضواء", Textures="إخفاء الخامات", Materials="تقليل المواد", Mesh="تحسين الميش", Post="تعطيل ما بعد المعالجة", Fog="تعطيل الضباب", Shadows="تعطيل الظلال", Foliage="إخفاء النباتات", Sounds="كتم الأصوات", AntiCrash="Anti-Crash", VIP="تطبيق VIP" }
+        Title = "BoostFPS Hub",
+        Hint = "Tối ưu đồ họa an toàn · PC & Mobile",
+        BoostAll = "BẬT TĂNG TỐI ĐA (AN TOÀN)",
+        Restore = "KHÔI PHỤC (Hoàn tác)",
+        FPS = "FPS: %d",
+        RenderValue = "Khoảng cách render: %d",
+        ToggleUI = "Hiện/Ẩn UI",
+        Particles = "Tắt Particles / FX",
+        Lights = "Tắt Đèn",
+        Textures = "Ẩn Decal / Texture",
+        Materials = "Giảm Material -> Plastic",
+        Mesh = "Xóa Texture Mesh",
+        Post = "Tắt Post-Processing",
+        Fog = "Tắt Fog",
+        Shadows = "Tắt Shadows",
+        Foliage = "Ẩn Cây Cỏ",
+        Sounds = "Tắt Âm Workspace",
+        AntiCrash = "Anti-Crash (Clear + GC)",
+        VIP = "Kích hoạt VIP Aggressive Mode",
+        AggressiveApplied = "[VIP] Chế độ Aggressive kích hoạt",
+        AntiCrashDo = "[AntiCrash] Đã xóa cache + GC",
+    }
 }
-
--- Utility to detect best-locale key
-local function getLocaleKey()
-    local ok, ls = pcall(function()
-        return game:GetService("LocalizationService").RobloxLocaleId
-    end)
-    if ok and ls then
-        local short = tostring(ls):sub(1,2):lower()
-        if LANGS[short] then return short end
+-- choose locale
+local function detectLocale()
+    if Config.AutoDetectLocale then
+        local success, localeId = pcall(function() return game:GetService("LocalizationService").RobloxLocaleId end)
+        if success and localeId then
+            local short = tostring(localeId):sub(1,2):lower()
+            if LANGS[short] then return short end
+        end
     end
-    -- fallback to en
     return Config.LanguageDefault
 end
-
-local LOCALE = getLocaleKey()
+local LOCALE = detectLocale()
 local L = LANGS[LOCALE] or LANGS[Config.LanguageDefault]
 
--- ========== SERVICES & STATE ==========
+-- ================= SERVICES & STATE =================
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer or Players.PlayerAdded:Wait()
 local UIS = game:GetService("UserInputService")
@@ -137,29 +101,30 @@ local RunService = game:GetService("RunService")
 local Lighting = game:GetService("Lighting")
 local ContentProvider = game:GetService("ContentProvider")
 local CollectionService = game:GetService("CollectionService")
+local Debris = game:GetService("Debris")
 local TeleportService = game:GetService("TeleportService")
 
-local Original = {} -- to store original props
-local ModifiedList = {} -- list of instances modified
-local Toggles = {} -- track toggles
+local Original = {}       -- Original properties map {instance -> {prop=val}}
+local ModifiedList = {}   -- instances we modified (list)
+local Toggles = {}        -- active toggles
 local AntiCrashThread = nil
 local FPSConn = nil
 local UIVisible = true
 
--- ========== HELPERS ==========
+-- ================= UTILITIES =================
 local function randDelay()
     local a,b = Config.AntiBan.MinDelay, Config.AntiBan.MaxDelay
     return a + math.random()*(b-a) + (math.random()-0.5)*Config.AntiBan.Jitter
 end
 
-local function batchProcessFlat(list, batchSize, worker)
+local function batchWorker(list, batchSize, worker)
     if #list == 0 then return end
     task.spawn(function()
         local i = 1
-        local bs = math.max(8, batchSize or Config.AntiBan.BatchSize)
+        local bs = math.max(6, batchSize or Config.AntiBan.BatchSize)
         while i <= #list do
             local endI = math.min(#list, i + bs - 1)
-            for j = i, endI do
+            for j=i,endI do
                 pcall(worker, list[j])
             end
             i = endI + 1
@@ -175,19 +140,16 @@ local function saveOriginal(inst, props)
     for _,p in ipairs(props) do
         pcall(function() Original[inst][p] = inst[p] end)
     end
-    ModifiedList[#ModifiedList+1] = inst
+    table.insert(ModifiedList, inst)
 end
 
 local function isProtected(inst)
     if not inst then return true end
-    -- protect local player's character and UI and backpack/tools
     if inst:IsDescendantOf(LocalPlayer.Character or {}) then return true end
     if inst:IsDescendantOf(LocalPlayer:FindFirstChild("PlayerGui") or {}) then return true end
     if inst:IsDescendantOf(LocalPlayer:FindFirstChild("Backpack") or {}) then return true end
     if inst:IsDescendantOf(game:GetService("StarterGui")) then return true end
-    -- collection service tag for preserve
     if CollectionService:HasTag(inst, "Preserve") then return true end
-    -- name heuristic
     local nm = tostring(inst.Name):lower()
     if nm:match("hit") or nm:match("hurt") or nm:match("damage") or nm:match("hitbox") or nm:match("projectile") then
         return true
@@ -197,15 +159,15 @@ local function isProtected(inst)
     return false
 end
 
--- ========== CORE SAFE ACTIONS ==========
+-- ================= ACTIONS (SAFE-PRIORITY) =================
 local function disableEmitters(root)
     local found = {}
     for _,v in ipairs(root:GetDescendants()) do
         if (v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Beam") or v:IsA("Sparkles") or v:IsA("Smoke") or v:IsA("Fire")) and not isProtected(v) then
-            found[#found+1] = v
+            table.insert(found, v)
         end
     end
-    batchProcessFlat(found, Config.AntiBan.BatchSize, function(obj)
+    batchWorker(found, Config.AntiBan.BatchSize, function(obj)
         saveOriginal(obj, {"Enabled"})
         pcall(function() obj.Enabled = false end)
     end)
@@ -214,9 +176,9 @@ end
 local function disableLights(root)
     local found = {}
     for _,v in ipairs(root:GetDescendants()) do
-        if v:IsA("Light") and not isProtected(v) then found[#found+1] = v end
+        if v:IsA("Light") and not isProtected(v) then table.insert(found, v) end
     end
-    batchProcessFlat(found, Config.AntiBan.BatchSize, function(light)
+    batchWorker(found, Config.AntiBan.BatchSize, function(light)
         saveOriginal(light, {"Enabled"})
         pcall(function() light.Enabled = false end)
     end)
@@ -226,10 +188,10 @@ local function hideDecalsTextures(root)
     local found = {}
     for _,v in ipairs(root:GetDescendants()) do
         if (v:IsA("Decal") or v:IsA("Texture") or v:IsA("SurfaceAppearance")) and not isProtected(v) then
-            found[#found+1] = v
+            table.insert(found, v)
         end
     end
-    batchProcessFlat(found, math.max(10, Config.AntiBan.BatchSize//4), function(obj)
+    batchWorker(found, math.max(8, Config.AntiBan.BatchSize//4), function(obj)
         if obj:IsA("SurfaceAppearance") then
             saveOriginal(obj, {"AlbedoColor","Roughness","Metalness"})
             pcall(function()
@@ -246,9 +208,9 @@ end
 local function reduceMaterials(root)
     local found = {}
     for _,v in ipairs(root:GetDescendants()) do
-        if v:IsA("BasePart") and not isProtected(v) then found[#found+1] = v end
+        if v:IsA("BasePart") and not isProtected(v) then table.insert(found, v) end
     end
-    batchProcessFlat(found, Config.AntiBan.BatchSize, function(part)
+    batchWorker(found, Config.AntiBan.BatchSize, function(part)
         saveOriginal(part, {"Material","Reflectance"})
         pcall(function() part.Material = Enum.Material.SmoothPlastic part.Reflectance = 0 end)
     end)
@@ -257,9 +219,9 @@ end
 local function optimizeMeshParts(root)
     local found = {}
     for _,v in ipairs(root:GetDescendants()) do
-        if v:IsA("MeshPart") and not isProtected(v) then found[#found+1] = v end
+        if v:IsA("MeshPart") and not isProtected(v) then table.insert(found, v) end
     end
-    batchProcessFlat(found, math.max(8, Config.AntiBan.BatchSize//5), function(mesh)
+    batchWorker(found, math.max(6, Config.AntiBan.BatchSize//6), function(mesh)
         saveOriginal(mesh, {"TextureID","RenderFidelity"})
         pcall(function()
             if mesh.TextureID and mesh.TextureID ~= "" then mesh.TextureID = "" end
@@ -273,7 +235,7 @@ local function disablePostProcessing()
     for _,eff in ipairs(Lighting:GetChildren()) do
         local cls = eff.ClassName
         if cls == "BloomEffect" or cls == "SunRaysEffect" or cls == "ColorCorrectionEffect" or cls == "DepthOfFieldEffect" or cls == "BlurEffect" or cls == "AmbientOcclusion" then
-            effects[#effects+1] = eff
+            table.insert(effects, eff)
         end
     end
     for _,e in ipairs(effects) do
@@ -309,11 +271,11 @@ local function hideFoliage(root)
         if (v:IsA("MeshPart") or v:IsA("Part")) and not isProtected(v) then
             local nm = tostring(v.Name):lower()
             if nm:find("tree") or nm:find("leaf") or nm:find("grass") or nm:find("bush") or nm:find("foliage") then
-                found[#found+1] = v
+                table.insert(found, v)
             end
         end
     end
-    batchProcessFlat(found, Config.AntiBan.BatchSize, function(obj)
+    batchWorker(found, Config.AntiBan.BatchSize, function(obj)
         saveOriginal(obj, {"Transparency","CanCollide"})
         pcall(function() obj.Transparency = 1 obj.CanCollide = false end)
     end)
@@ -322,9 +284,9 @@ end
 local function muteWorkspaceSounds()
     local found = {}
     for _,v in ipairs(workspace:GetDescendants()) do
-        if v:IsA("Sound") and not isProtected(v) then found[#found+1] = v end
+        if v:IsA("Sound") and not isProtected(v) then table.insert(found, v) end
     end
-    batchProcessFlat(found, Config.AntiBan.BatchSize, function(s)
+    batchWorker(found, Config.AntiBan.BatchSize, function(s)
         saveOriginal(s, {"Volume","Playing"})
         pcall(function() s.Volume = 0 if s.Playing then s:Stop() end end)
     end)
@@ -343,7 +305,23 @@ local function restoreRenderDistance()
     pcall(function() if Original["_StreamingTargetRadius"] then workspace.StreamingTargetRadius = Original["_StreamingTargetRadius"] end end)
 end
 
--- ========== AntiCrash (VIP safe) ==========
+-- Aggressive depth extras (safe rules applied)
+local function aggressiveExtras(depth)
+    if depth >= 1 then
+        -- stronger: remove decal textures, set terrain low LOD
+        hideDecalsTextures(workspace)
+        optimizeMeshParts(workspace)
+        reduceMaterials(workspace)
+    end
+    if depth >= 2 then
+        -- extreme-safe: reduce additional quality, remove more maps, set streaming low
+        hideFoliage(workspace)
+        muteWorkspaceSounds()
+        setRenderDistance(128) -- aggressive but safe for low-end
+    end
+end
+
+-- ================= AntiCrash =================
 local function startAntiCrash()
     if AntiCrashThread then return end
     AntiCrashThread = task.spawn(function()
@@ -361,59 +339,26 @@ end
 local function stopAntiCrash()
     Toggles.antiCrash = false
     AntiCrashThread = nil
-    print("[AntiCrash] Stopped")
 end
 
--- ========== VIP Aggressive Safe Mode ==========
-local function applyAggressiveSafeMode()
-    if not Config.IsVIP then
-        warn("VIP features require Config.IsVIP = true (local setting).")
-        return
-    end
-    -- apply sequence but safe
-    disableEmitters(workspace)
-    disableLights(workspace)
-    hideDecalsTextures(workspace)
-    reduceMaterials(workspace)
-    optimizeMeshParts(workspace)
-    disablePostProcessing()
-    disableFog(true)
-    disableShadows(true)
-    hideFoliage(workspace)
-    muteWorkspaceSounds()
-    Toggles.antiCrash = true
-    startAntiCrash()
-    pcall(function() print(L.AggressiveOn or "[VIP] Aggressive Safe Mode ON") end)
-end
-
--- ========== Apply full safe boost sequence ==========
+-- ================= APPLY / REVERT =================
 local function applyFullSafeBoost()
-    -- action splitting with randomized waits
     task.spawn(function()
         task.wait(randDelay())
-        hideDecalsTextures(workspace)
-        task.wait(randDelay())
-        disableEmitters(workspace)
-        task.wait(randDelay())
-        optimizeMeshParts(workspace)
-        task.wait(randDelay())
-        reduceMaterials(workspace)
-        task.wait(randDelay())
-        disablePostProcessing()
-        task.wait(randDelay())
-        disableFog(true)
-        disableShadows(true)
-        task.wait(randDelay())
-        hideFoliage(workspace)
-        task.wait(randDelay())
+        hideDecalsTextures(workspace); task.wait(randDelay())
+        disableEmitters(workspace); task.wait(randDelay())
+        optimizeMeshParts(workspace); task.wait(randDelay())
+        reduceMaterials(workspace); task.wait(randDelay())
+        disablePostProcessing(); task.wait(randDelay())
+        disableFog(true); task.wait(randDelay())
+        disableShadows(true); task.wait(randDelay())
+        hideFoliage(workspace); task.wait(randDelay())
         muteWorkspaceSounds()
-        -- start anti-crash by default
-        Toggles.antiCrash = true
-        startAntiCrash()
+        Toggles.antiCrash = true; startAntiCrash()
+        if Config.IsVIP then aggressiveExtras(Config.AggressiveDepth) end
     end)
 end
 
--- ========== Revert changes ==========
 local function restoreAll()
     for _,inst in ipairs(ModifiedList) do
         local orig = Original[inst]
@@ -425,7 +370,6 @@ local function restoreAll()
             end)
         end
     end
-    -- lighting special
     pcall(function()
         if Original["_Lighting_GlobalShadows"] ~= nil then Lighting.GlobalShadows = Original["_Lighting_GlobalShadows"] end
         if Original["_Lighting_FogEnd"] ~= nil then Lighting.FogEnd = Original["_Lighting_FogEnd"] end
@@ -434,227 +378,302 @@ local function restoreAll()
     Original = {}
     ModifiedList = {}
     Toggles = {}
-    print("[BoostFPS] Attempted restore. Some effects may require rejoin.")
+    stopAntiCrash()
+    restoreRenderDistance()
+    print("[BoostFPS] Restore attempted.")
 end
 
--- ========== UI FACTORY (Rayfield-like simplified) ==========
--- Remove existing UI
-if game.CoreGui:FindFirstChild("BoostFPS_Hub_UI_v2") then game.CoreGui.BoostFPS_Hub_UI_v2:Destroy() end
-
+-- ================= UI: Linoria-like Dark =================
+-- Remove old
+if game.CoreGui:FindFirstChild("BoostFPS_LinoriaUI_v2") then game.CoreGui.BoostFPS_LinoriaUI_v2:Destroy() end
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "BoostFPS_Hub_UI_v2"
+ScreenGui.Name = "BoostFPS_LinoriaUI_v2"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = game.CoreGui
 
--- auto scale for mobile
-local isMobile = (UIS.TouchEnabled and not UIS.KeyboardEnabled) or false
-local scale = isMobile and Config.UI.MobileScale or 1
-local W = math.floor(Config.UI.Width * scale)
-local H = math.floor(Config.UI.Height * scale)
+-- scale
+local mobile = (UIS.TouchEnabled and not UIS.KeyboardEnabled) or false
+local scale = mobile and Config.MobileScale or 1
+local W = math.floor(420 * scale)
+local H = math.floor(420 * scale)
 
-local Main = Instance.new("Frame", ScreenGui)
-Main.Name = "Main"
-Main.Size = UDim2.new(0, W, 0, H)
-Main.Position = UDim2.new(0.05, 0, 0.18, 0)
-Main.AnchorPoint = Vector2.new(0,0)
-Main.BackgroundColor3 = Config.ThemePresets[Config.DefaultTheme].Panel
-Main.BorderSizePixel = 0
-Main.ClipsDescendants = true
-Main.Active = true
-Main.Draggable = true
+-- Main window
+local Window = Instance.new("Frame", ScreenGui)
+Window.Name = "Window"
+Window.Size = UDim2.new(0, W, 0, H)
+Window.Position = UDim2.new(0.06, 0, 0.18, 0)
+Window.AnchorPoint = Vector2.new(0,0)
+Window.BackgroundColor3 = Config.Theme.Panel
+Window.BorderSizePixel = 0
+Window.ClipsDescendants = true
+Window.Visible = true
+Window.Active = true
+Window.Draggable = true
+Window.AutomaticSize = Enum.AutomaticSize.None
+Window.LayoutOrder = 1
+
+-- Rounded corners (UIGradient not supported, but we can fake)
+local UICorner = Instance.new("UICorner", Window)
+UICorner.CornerRadius = UDim.new(0, Config.Theme.WindowRadius)
 
 -- Header
-local Header = Instance.new("Frame", Main)
-Header.Size = UDim2.new(1,0,0,56)
-Header.Position = UDim2.new(0,0,0,0)
-Header.BackgroundColor3 = Config.ThemePresets[Config.DefaultTheme].Background
+local Header = Instance.new("Frame", Window)
+Header.Size = UDim2.new(1, 0, 0, 54)
+Header.Position = UDim2.new(0, 0, 0, 0)
+Header.BackgroundColor3 = Config.Theme.Background
 Header.BorderSizePixel = 0
 
-local Title = Instance.new("TextLabel", Header)
-Title.Size = UDim2.new(0.7, -12, 1, 0)
-Title.Position = UDim2.new(0, 12, 0, 0)
-Title.BackgroundTransparency = 1
-Title.Text = L.Title
-Title.TextColor3 = Config.ThemePresets[Config.DefaultTheme].Accent
-Title.TextXAlignment = Enum.TextXAlignment.Left
-Title.Font = Enum.Font.GothamBold
-Title.TextScaled = true
+local TitleLabel = Instance.new("TextLabel", Header)
+TitleLabel.Size = UDim2.new(0.7, -12, 1, 0)
+TitleLabel.Position = UDim2.new(0, 12, 0, 0)
+TitleLabel.BackgroundTransparency = 1
+TitleLabel.Text = L.Title
+TitleLabel.TextColor3 = Config.Theme.Accent
+TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+TitleLabel.Font = Enum.Font.GothamBold
+TitleLabel.TextSize = math.clamp(15 * scale, 12, 20)
+TitleLabel.TextScaled = false
 
-local Hint = Instance.new("TextLabel", Header)
-Hint.Size = UDim2.new(0.3, -12, 1, 0)
-Hint.Position = UDim2.new(0.7, 8, 0, 0)
-Hint.BackgroundTransparency = 1
-Hint.Text = L.Hint
-Hint.TextColor3 = Config.ThemePresets[Config.DefaultTheme].SubText
-Hint.TextXAlignment = Enum.TextXAlignment.Right
-Hint.Font = Enum.Font.Gotham
-Hint.TextSize = 14
+local HintLabel = Instance.new("TextLabel", Header)
+HintLabel.Size = UDim2.new(0.3, -12, 1, 0)
+HintLabel.Position = UDim2.new(0.7, 8, 0, 0)
+HintLabel.BackgroundTransparency = 1
+HintLabel.Text = L.Hint
+HintLabel.TextColor3 = Config.Theme.SubText
+HintLabel.TextXAlignment = Enum.TextXAlignment.Right
+HintLabel.Font = Enum.Font.Gotham
+HintLabel.TextSize = math.clamp(12 * scale, 10, 14)
+HintLabel.TextScaled = false
 
-local CloseBtn = Instance.new("TextButton", Header)
-CloseBtn.Size = UDim2.new(0,36,0,28)
-CloseBtn.Position = UDim2.new(1,-48,0,14)
-CloseBtn.Text = "X"
-CloseBtn.Font = Enum.Font.GothamBold
-CloseBtn.TextColor3 = Config.ThemePresets[Config.DefaultTheme].Text
-CloseBtn.BackgroundColor3 = Color3.fromRGB(40,40,40)
+local CloseButton = Instance.new("TextButton", Header)
+CloseButton.Size = UDim2.new(0, 36, 0, 28)
+CloseButton.Position = UDim2.new(1, -48, 0, 12)
+CloseButton.AnchorPoint = Vector2.new(0,0)
+CloseButton.Text = "✕"
+CloseButton.Font = Enum.Font.GothamBold
+CloseButton.TextSize = math.clamp(16 * scale, 12, 20)
+CloseButton.TextColor3 = Config.Theme.Text
+CloseButton.BackgroundColor3 = Color3.fromRGB(38,44,50)
+CloseButton.BorderSizePixel = 0
+local CloseCorner = Instance.new("UICorner", CloseButton); CloseCorner.CornerRadius = UDim.new(0,6)
 
--- Content
-local Content = Instance.new("ScrollingFrame", Main)
-Content.Size = UDim2.new(1, -20, 1, -86)
-Content.Position = UDim2.new(0, 10, 0, 66)
-Content.CanvasSize = UDim2.new(0,0,0,0)
-Content.ScrollBarThickness = 8
-Content.BackgroundColor3 = Config.ThemePresets[Config.DefaultTheme].Panel
-Content.BorderSizePixel = 0
+-- Left tab column
+local TabColumn = Instance.new("Frame", Window)
+TabColumn.Size = UDim2.new(0, 140 * scale, 1, -54)
+TabColumn.Position = UDim2.new(0, 0, 0, 54)
+TabColumn.BackgroundTransparency = 1
 
-local UIList = Instance.new("UIListLayout", Content)
-UIList.Padding = UDim.new(0,8)
-UIList.HorizontalAlignment = Enum.HorizontalAlignment.Left
-Content:GetPropertyChangedSignal("CanvasSize"):Connect(function()
-    -- no-op
-end)
-
--- small helper factories
-local function makeButton(text, color)
-    local b = Instance.new("TextButton")
-    b.Size = UDim2.new(1, -12, 0, 40)
-    b.BackgroundColor3 = color or Config.ThemePresets[Config.DefaultTheme].Accent
+local function makeTabBtn(text, y)
+    local b = Instance.new("TextButton", TabColumn)
+    b.Size = UDim2.new(1, -12, 0, 36)
+    b.Position = UDim2.new(0, 6, 0, 12 + (y-1) * (36 + 8))
     b.Text = text
-    b.Font = Enum.Font.GothamBold
-    b.TextColor3 = Color3.fromRGB(10,10,10)
-    b.TextScaled = true
+    b.Font = Enum.Font.GothamSemibold
+    b.TextSize = math.clamp(13 * scale, 11, 16)
+    b.TextColor3 = Config.Theme.Text
+    b.BackgroundColor3 = Color3.fromRGB(28,34,38)
     b.BorderSizePixel = 0
+    local uc = Instance.new("UICorner", b); uc.CornerRadius = UDim.new(0,6)
     return b
 end
 
-local function makeToggle(text)
+local t1 = makeTabBtn("Main", 1)
+local t2 = makeTabBtn("Visuals", 2)
+local t3 = makeTabBtn("Advanced", 3)
+local t4 = makeTabBtn("Settings", 4)
+
+-- Right panel (content)
+local Panel = Instance.new("Frame", Window)
+Panel.Size = UDim2.new(1, - (140 * scale) - 16, 1, -54)
+Panel.Position = UDim2.new(0, (140 * scale) + 8, 0, 54)
+Panel.BackgroundTransparency = 1
+
+local Scroll = Instance.new("ScrollingFrame", Panel)
+Scroll.Size = UDim2.new(1, -12, 1, -12)
+Scroll.Position = UDim2.new(0, 6, 0, 6)
+Scroll.CanvasSize = UDim2.new(0,0,0,0)
+Scroll.ScrollBarThickness = math.clamp(8 * scale, 6, 12)
+Scroll.BackgroundTransparency = 1
+
+local Layout = Instance.new("UIListLayout", Scroll)
+Layout.Padding = UDim.new(0, 10)
+Layout.SortOrder = Enum.SortOrder.LayoutOrder
+
+-- small factory: button, toggle, slider
+local function createButton(text, color)
+    local b = Instance.new("TextButton")
+    b.Size = UDim2.new(1, 0, 0, math.clamp(40 * scale, 32, 48))
+    b.BackgroundColor3 = color or Config.Theme.Accent
+    b.Text = text
+    b.Font = Enum.Font.GothamBold
+    b.TextColor3 = Color3.fromRGB(12,12,12)
+    b.TextScaled = false
+    b.TextSize = math.clamp(14 * scale, 12, 16)
+    b.BorderSizePixel = 0
+    local uc = Instance.new("UICorner", b); uc.CornerRadius = UDim.new(0,6)
+    return b
+end
+
+local function createToggleRow(text)
     local f = Instance.new("Frame")
-    f.Size = UDim2.new(1, -12, 0, 44)
-    f.BackgroundColor3 = Config.ThemePresets[Config.DefaultTheme].Panel
-    f.BorderSizePixel = 0
+    f.Size = UDim2.new(1, 0, 0, math.clamp(48 * scale,40,56))
+    f.BackgroundTransparency = 1
     local lbl = Instance.new("TextLabel", f)
-    lbl.Size = UDim2.new(0.72, 0, 1, 0)
+    lbl.Size = UDim2.new(0.68, 0, 1, 0)
+    lbl.Position = UDim2.new(0, 0, 0, 0)
     lbl.BackgroundTransparency = 1
     lbl.Text = text
-    lbl.TextColor3 = Config.ThemePresets[Config.DefaultTheme].Text
     lbl.Font = Enum.Font.Gotham
-    lbl.TextScaled = true
+    lbl.TextSize = math.clamp(14 * scale, 12, 16)
+    lbl.TextColor3 = Config.Theme.Text
     lbl.TextXAlignment = Enum.TextXAlignment.Left
 
     local btn = Instance.new("TextButton", f)
-    btn.Size = UDim2.new(0,88,0,28)
-    btn.Position = UDim2.new(1, -96, 0.5, -14)
+    btn.Size = UDim2.new(0, 90 * scale, 0, math.clamp(32 * scale, 28, 40))
+    btn.Position = UDim2.new(1, - (98 * scale), 0.5, - (math.clamp(16 * scale,12,18)))
     btn.Text = "OFF"
-    btn.BackgroundColor3 = Config.ThemePresets[Config.DefaultTheme].ToggleOFF
+    btn.BackgroundColor3 = Config.Theme.Panel
     btn.Font = Enum.Font.GothamBold
-    btn.TextColor3 = Color3.fromRGB(230,230,230)
+    btn.TextSize = math.clamp(12 * scale, 11, 14)
+    btn.TextColor3 = Config.Theme.Text
     btn.BorderSizePixel = 0
-    return {frame=f,label=lbl,button=btn}
+    local uc2 = Instance.new("UICorner", btn); uc2.CornerRadius = UDim.new(0,6)
+
+    return {frame=f, label=lbl, button=btn}
 end
 
--- Build UI entries
-local btnBoost = makeButton(L.BoostAll)
-btnBoost.Parent = Content
+-- Build Main tab content
+local btnApply = createButton(L.BoostAll)
+btnApply.Parent = Scroll
 
-local btnRestore = makeButton(L.Restore, Color3.fromRGB(120,120,120))
-btnRestore.Parent = Content
+local btnRestore = createButton(L.Restore, Color3.fromRGB(110,110,110))
+btnRestore.Parent = Scroll
 
-local togParticles = makeToggle(L.Particles); togParticles.frame.Parent = Content
-local togLights = makeToggle(L.Lights); togLights.frame.Parent = Content
-local togTextures = makeToggle(L.Textures); togTextures.frame.Parent = Content
-local togMaterials = makeToggle(L.Materials); togMaterials.frame.Parent = Content
-local togMesh = makeToggle(L.Mesh); togMesh.frame.Parent = Content
-local togPost = makeToggle(L.Post); togPost.frame.Parent = Content
-local togFog = makeToggle(L.Fog); togFog.frame.Parent = Content
-local togShadows = makeToggle(L.Shadows); togShadows.frame.Parent = Content
-local togFoliage = makeToggle(L.Foliage); togFoliage.frame.Parent = Content
-local togSounds = makeToggle(L.Sounds); togSounds.frame.Parent = Content
-local togAntiCrash = makeToggle(L.AntiCrash); togAntiCrash.frame.Parent = Content
+local togParticles = createToggleRow(L.Particles); togParticles.frame.Parent = Scroll
+local togLights = createToggleRow(L.Lights); togLights.frame.Parent = Scroll
+local togTextures = createToggleRow(L.Textures); togTextures.frame.Parent = Scroll
+local togMaterials = createToggleRow(L.Materials); togMaterials.frame.Parent = Scroll
+local togMesh = createToggleRow(L.Mesh); togMesh.frame.Parent = Scroll
+local togPost = createToggleRow(L.Post); togPost.frame.Parent = Scroll
+local togFog = createToggleRow(L.Fog); togFog.frame.Parent = Scroll
+local togShadows = createToggleRow(L.Shadows); togShadows.frame.Parent = Scroll
+local togFoliage = createToggleRow(L.Foliage); togFoliage.frame.Parent = Scroll
+local togSounds = createToggleRow(L.Sounds); togSounds.frame.Parent = Scroll
+local togAntiCrash = createToggleRow(L.AntiCrash); togAntiCrash.frame.Parent = Scroll
 
-local btnVIP = makeButton(L.VIP, Config.ThemePresets[Config.DefaultTheme].Accent)
-btnVIP.Parent = Content
+local btnVIP = createButton(L.VIP)
+btnVIP.Parent = Scroll
 
-local renderLabel = Instance.new("TextLabel")
-renderLabel.Size = UDim2.new(1, -12, 0, 28)
+local renderLabel = Instance.new("TextLabel", Scroll)
+renderLabel.Size = UDim2.new(1, 0, 0, math.clamp(28 * scale,24,32))
 renderLabel.BackgroundTransparency = 1
 renderLabel.Text = string.format(L.RenderValue, Config.DefaultRenderDistance)
-renderLabel.TextColor3 = Config.ThemePresets[Config.DefaultTheme].Text
+renderLabel.TextColor3 = Config.Theme.SubText
 renderLabel.Font = Enum.Font.Gotham
-renderLabel.TextScaled = true
-renderLabel.Parent = Content
+renderLabel.TextSize = math.clamp(13 * scale,12,14)
+renderLabel.Parent = Scroll
 
--- update canvas size
+-- update canvas size helper
 local function updateCanvas()
-    local total = 0
-    for _,v in ipairs(Content:GetChildren()) do
-        if v:IsA("Frame") or v:IsA("TextButton") or v:IsA("TextLabel") then
-            total = total + v.AbsoluteSize.Y + (UIList.Padding.Offset or 8)
-        end
-    end
-    Content.CanvasSize = UDim2.new(0,0,0,total/Content.AbsoluteSize.Y)
+    local total = Layout.AbsoluteContentSize.Y + 24
+    Scroll.CanvasSize = UDim2.new(0,0,total)
 end
-Content:GetPropertyChangedSignal("AbsoluteSize"):Connect(updateCanvas)
+Layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(updateCanvas)
 task.defer(updateCanvas)
 
--- helper: toggle visuals UI state
-local function setToggleVisual(t, state)
+-- small helper to set visual toggle
+local function setToggleVisual(tog, state)
     pcall(function()
-        t.button.Text = state and "ON" or "OFF"
-        t.button.BackgroundColor3 = state and Config.ThemePresets[Config.DefaultTheme].ToggleON or Config.ThemePresets[Config.DefaultTheme].ToggleOFF
+        tog.button.Text = state and "ON" or "OFF"
+        tog.button.BackgroundColor3 = state and Config.Theme.Accent2 or Config.Theme.Panel
+        tog.label.TextColor3 = state and Config.Theme.Text or Config.Theme.Text
     end)
 end
 
--- binds
+-- Bind toggle button actions (with smart delays)
+local function safeToggleAction(toggleName, action)
+    Toggles[toggleName] = not Toggles[toggleName]
+    setToggleVisual(_G["tog_"..toggleName], Toggles[toggleName])
+    task.spawn(function()
+        task.wait(randDelay())
+        pcall(action)
+    end)
+end
+
+-- store references for easier mapping
+_G.tog_disableParticles = togParticles
+_G.tog_disableLights = togLights
+_G.tog_hideTextures = togTextures
+_G.tog_reduceMaterials = togMaterials
+_G.tog_optimizeMesh = togMesh
+_G.tog_disablePost = togPost
+_G.tog_disableFog = togFog
+_G.tog_disableShadows = togShadows
+_G.tog_hideFoliage = togFoliage
+_G.tog_muteSounds = togSounds
+_G.tog_antiCrash = togAntiCrash
+
+-- bind UI interactions
 togParticles.button.MouseButton1Click:Connect(function()
     Toggles.disableParticles = not Toggles.disableParticles
     setToggleVisual(togParticles, Toggles.disableParticles)
     if Toggles.disableParticles then disableEmitters(workspace) end
 end)
+
 togLights.button.MouseButton1Click:Connect(function()
     Toggles.disableLights = not Toggles.disableLights
     setToggleVisual(togLights, Toggles.disableLights)
     if Toggles.disableLights then disableLights(workspace) end
 end)
+
 togTextures.button.MouseButton1Click:Connect(function()
     Toggles.hideTextures = not Toggles.hideTextures
     setToggleVisual(togTextures, Toggles.hideTextures)
     if Toggles.hideTextures then hideDecalsTextures(workspace) end
 end)
+
 togMaterials.button.MouseButton1Click:Connect(function()
     Toggles.reduceMaterials = not Toggles.reduceMaterials
     setToggleVisual(togMaterials, Toggles.reduceMaterials)
     if Toggles.reduceMaterials then reduceMaterials(workspace) end
 end)
+
 togMesh.button.MouseButton1Click:Connect(function()
     Toggles.optimizeMesh = not Toggles.optimizeMesh
     setToggleVisual(togMesh, Toggles.optimizeMesh)
     if Toggles.optimizeMesh then optimizeMeshParts(workspace) end
 end)
+
 togPost.button.MouseButton1Click:Connect(function()
     Toggles.disablePost = not Toggles.disablePost
     setToggleVisual(togPost, Toggles.disablePost)
     if Toggles.disablePost then disablePostProcessing() end
 end)
+
 togFog.button.MouseButton1Click:Connect(function()
     Toggles.disableFog = not Toggles.disableFog
     setToggleVisual(togFog, Toggles.disableFog)
     disableFog(Toggles.disableFog)
 end)
+
 togShadows.button.MouseButton1Click:Connect(function()
     Toggles.disableShadows = not Toggles.disableShadows
     setToggleVisual(togShadows, Toggles.disableShadows)
     disableShadows(Toggles.disableShadows)
 end)
+
 togFoliage.button.MouseButton1Click:Connect(function()
     Toggles.hideFoliage = not Toggles.hideFoliage
     setToggleVisual(togFoliage, Toggles.hideFoliage)
     if Toggles.hideFoliage then hideFoliage(workspace) end
 end)
+
 togSounds.button.MouseButton1Click:Connect(function()
     Toggles.mute = not Toggles.mute
     setToggleVisual(togSounds, Toggles.mute)
     if Toggles.mute then muteWorkspaceSounds() end
 end)
+
 togAntiCrash.button.MouseButton1Click:Connect(function()
     Toggles.antiCrash = not Toggles.antiCrash
     setToggleVisual(togAntiCrash, Toggles.antiCrash)
@@ -663,59 +682,50 @@ end)
 
 btnVIP.MouseButton1Click:Connect(function()
     if not Config.IsVIP then
-        warn("VIP features require Config.IsVIP = true (local setting).")
+        warn("VIP mode disabled (set Config.IsVIP = true locally to enable)")
         return
     end
     applyAggressiveSafeMode()
 end)
 
-btnBoost.MouseButton1Click:Connect(function()
+btnApply.MouseButton1Click:Connect(function()
     applyFullSafeBoost()
 end)
 
 btnRestore.MouseButton1Click:Connect(function()
     restoreAll()
-    stopAntiCrash()
-    restoreRenderDistance()
-    -- reset visuals
-    for _,t in ipairs({togParticles,togLights,togTextures,togMaterials,togMesh,togPost,togFog,togShadows,togFoliage,togSounds,togAntiCrash}) do
-        setToggleVisual(t, false)
-    end
 end)
 
--- Render slider via keyboard left/right (simple)
-local currentRender = Config.DefaultRenderDistance or 256
-local function setRender(v)
-    currentRender = math.clamp(v, 64, 1024)
-    renderLabel.Text = string.format(L.RenderValue, currentRender)
-    setRenderDistance(currentRender)
+-- Tabs switching visuals (simple)
+local tabs = {t1,t2,t3,t4}
+local panels = {} -- could add page content; for now we just highlight selected
+local function selectTab(btn)
+    for _,b in ipairs(tabs) do b.BackgroundColor3 = Color3.fromRGB(28,34,38) end
+    btn.BackgroundColor3 = Config.Theme.Accent
 end
-
-UIS.InputBegan:Connect(function(input, gp)
-    if gp then return end
-    if input.KeyCode == Enum.KeyCode.Left then setRender(currentRender - 16) end
-    if input.KeyCode == Enum.KeyCode.Right then setRender(currentRender + 16) end
-    if input.KeyCode == Config.UI.ToggleKey then
-        UIVisible = not UIVisible
-        Main.Visible = UIVisible
-    end
-end)
+t1.MouseButton1Click:Connect(function() selectTab(t1) end)
+t2.MouseButton1Click:Connect(function() selectTab(t2) end)
+t3.MouseButton1Click:Connect(function() selectTab(t3) end)
+t4.MouseButton1Click:Connect(function() selectTab(t4) end)
+selectTab(t1)
 
 -- Close button
-CloseBtn.MouseButton1Click:Connect(function() UIVisible = false; Main.Visible = false end)
+CloseButton.MouseButton1Click:Connect(function()
+    UIVisible = false
+    Window.Visible = false
+end)
 
--- Draggable improvements (click+drag header)
+-- Drag improvements (Header)
 local dragging = false
-local dragInput, dragStart, startPos
+local dragStart = nil
+local startPos = nil
 Header.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
         dragging = true
         dragStart = input.Position
-        startPos = Main.Position
+        startPos = Window.Position
         input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                dragging = false
-            end
+            if input.UserInputState == Enum.UserInputState.End then dragging = false end
         end)
     end
 end)
@@ -727,41 +737,53 @@ end)
 RunService.Heartbeat:Connect(function()
     if not dragging or not dragInput or not dragStart or not startPos then return end
     local delta = dragInput.Position - dragStart
-    Main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    Window.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+end)
+
+-- Toggle UI by key
+UIS.InputBegan:Connect(function(inp, gp)
+    if gp then return end
+    if inp.KeyCode == Config.ToggleKey then
+        UIVisible = not UIVisible
+        Window.Visible = UIVisible
+    end
+    if inp.KeyCode == Enum.KeyCode.Left then setRenderDistance(math.max(64, (workspace.StreamingTargetRadius or Config.DefaultRenderDistance) - 32)) end
+    if inp.KeyCode == Enum.KeyCode.Right then setRenderDistance(math.min(2048, (workspace.StreamingTargetRadius or Config.DefaultRenderDistance) + 32)) end
 end)
 
 -- FPS counter
 local fpsLabel = Instance.new("TextLabel", ScreenGui)
-fpsLabel.Size = UDim2.new(0,120,0,28)
-fpsLabel.Position = UDim2.new(1,-140,0,8)
+fpsLabel.Size = UDim2.new(0,140,0,28)
+fpsLabel.Position = UDim2.new(1, -160, 0, 8)
 fpsLabel.BackgroundTransparency = 1
 fpsLabel.Font = Enum.Font.GothamBold
-fpsLabel.TextColor3 = Config.ThemePresets[Config.DefaultTheme].Text
-fpsLabel.TextScaled = true
+fpsLabel.TextColor3 = Config.Theme.Text
+fpsLabel.TextSize = math.clamp(13 * scale, 11, 16)
+fpsLabel.Text = string.format(L.FPS, 0)
 
-local avgFPS = 60
+local avg = 60
 FPSConn = RunService.Heartbeat:Connect(function(dt)
     if dt and dt > 0 then
-        local fps = 1/dt
-        avgFPS = avgFPS*0.9 + fps*0.1
-        fpsLabel.Text = string.format(L.FPS, math.floor(avgFPS+0.5))
+        local f = 1/dt
+        avg = avg*0.92 + f*0.08
+        fpsLabel.Text = string.format(L.FPS, math.floor(avg+0.5))
     end
 end)
 
--- initial visibility
-Main.Visible = true
-UIVisible = true
-
--- auto scale for mobile touches: enlarge touch areas
-if isMobile then
-    for _,obj in ipairs(Main:GetDescendants()) do
+-- Mobile tweaks
+if mobile then
+    Window.Position = UDim2.new(0.02, 0, 0.06, 0)
+    Window.Size = UDim2.new(0, math.floor(540 * scale), 0, math.floor(560 * scale))
+    for _,obj in ipairs(Window:GetDescendants()) do
         if obj:IsA("TextButton") or obj:IsA("TextLabel") then
-            pcall(function() obj.TextSize = 18 end)
+            pcall(function() obj.TextSize = math.clamp((obj.TextSize or 14) * 1.05, 12, 20) end)
         end
     end
 end
 
--- final print
-print("[BoostFPS Hub v2] Loaded. Locale:", LOCALE, " VIP:", tostring(Config.IsVIP))
+-- ensure scroll is snappy
+Scroll.MouseWheelForward:Connect(function() Scroll.CanvasPosition = Scroll.CanvasPosition - Vector2.new(0, 120) end)
+Scroll.MouseWheelBackward:Connect(function() Scroll.CanvasPosition = Scroll.CanvasPosition + Vector2.new(0, 120) end)
 
--- End of script
+-- final print
+print("[BoostFPS Hub v2 - Linoria Dark] Loaded. Locale:", LOCALE, " VIP:", tostring(Config.IsVIP))
