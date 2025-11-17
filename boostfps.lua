@@ -1,6 +1,5 @@
 --========================================================--
--- BOOST FPS HUB V3 – Premium Linoria UI (FINAL FIX: LOAD ERROR)
--- Multi-Language • Auto Save • Anti-Banwave • FPS Booster
+-- BOOST FPS HUB V3 – Premium Linoria UI (FINAL FIX: ROBUST LOAD)
 --========================================================--
 
 --// Services
@@ -52,6 +51,7 @@ LoadSettings()
 
 -- Hàm phụ trợ để áp dụng Theme đã lưu (cần được định nghĩa sau khi Library được tải)
 local ApplyTheme
+local ThemingEnabled = false -- Biến kiểm soát xem Theming có hoạt động không
 
 --========================================================--
 --  LANGUAGES
@@ -85,7 +85,7 @@ local Lang = {
     ["KR"] = {
         title = "FPS 향상 허브",
         boost = "FPS 향상",
-        ultra = "울트라 부스트",
+        ultra = "울트라 부ースト",
         mobile = "모바일 최적화",
         lowpoly = "저폴리 자동",
         theme = "UI 테마",
@@ -97,10 +97,10 @@ local Lang = {
 }
 
 --========================================================--
---  LINORIA UI LIBRARY (BUILT-IN) - Đã SỬA LỖI TẢI NIL VALUE
+--  LINORIA UI LIBRARY (BUILT-IN) - SỬA LỖI TẢI
 --========================================================--
 
--- Hàm tải an toàn với kiểm tra nil value
+-- Hàm tải an toàn
 local function LoadLinoriaComponent(url, name)
     local code = game:HttpGet(url)
     if not code or code:len() < 100 then
@@ -110,35 +110,48 @@ local function LoadLinoriaComponent(url, name)
 
     local component, err = loadstring(code)
     
-    -- Kiểm tra nếu loadstring thất bại hoặc không trả về hàm
     if not component or typeof(component) ~= "function" then
         print("Linoria Execution Error: loadstring " .. name .. " thất bại: " .. tostring(err))
         return nil
     end
 
-    -- Thực thi hàm (dòng 108 cũ)
     return component() 
 end
 
--- Tải các thành phần Linoria
+-- 1. Tải thư viện chính (BẮT BUỘC)
 local Library = LoadLinoriaComponent("https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/Library.lua", "Library")
-local ThemeManager = LoadLinoriaComponent("https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/Addons/ThemeManager.lua", "ThemeManager")
-local SaveManager = LoadLinoriaComponent("https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/Addons/SaveManager.lua", "SaveManager")
 
 -- Kiểm tra nếu thư viện chính tải thất bại và dừng script
 if not Library then
-    print("[BoostFPS Hub v3] FATAL ERROR: Linoria Library không thể tải. Vui lòng kiểm tra Executor/URL.")
+    print("[BoostFPS Hub v3] FATAL ERROR: Linoria Library không thể tải. Script dừng lại.")
     return
 end
 
-ApplyTheme = function(themeName)
-    if themeName == "Blue" then Library:SetTheme("Default") end
-    if themeName == "Red" then Library:SetTheme("Discord") end
-    if themeName == "Pink" then Library:SetTheme("Fatality") end
+-- 2. Tải ThemeManager (TÙY CHỌN)
+local ThemeManager = LoadLinoriaComponent("https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/Addons/ThemeManager.lua", "ThemeManager")
+
+if ThemeManager then
+    ThemingEnabled = true -- Nếu tải thành công, bật Theming
+else
+    print("[BoostFPS Hub v3] Warning: ThemeManager failed to load. Tính năng đổi Theme sẽ bị tắt.")
 end
 
--- Áp dụng theme đã lưu ngay sau khi tải settings và thư viện
-ApplyTheme(Settings.Theme)
+-- (Đã xóa SaveManager vì không cần thiết)
+
+-- Hàm ApplyTheme giờ đã được BẢO VỆ
+ApplyTheme = function(themeName)
+    if not ThemingEnabled then return end -- KHÔNG LÀM GÌ CẢ NẾU THEME BỊ TẮT
+
+    -- pcall để an toàn tuyệt đối
+    pcall(function()
+        if themeName == "Blue" then Library:SetTheme("Default") end
+        if themeName == "Red" then Library:SetTheme("Discord") end
+        if themeName == "Pink" then Library:SetTheme("Fatality") end
+    end)
+end
+
+-- Áp dụng theme đã lưu (An toàn)
+ApplyTheme(Settings.Theme) -- Dòng 135 cũ, giờ đã an toàn
 
 local UI = Library:CreateWindow({
     Title = Lang[Settings.Language].title .. "  |  V3",
@@ -168,7 +181,6 @@ BoostSec:AddToggle("BoostFPS", {
         SaveSettings()
 
         if v then
-            -- Sử dụng pcall để tránh lỗi nếu Executor không hỗ trợ sethiddenproperty
             pcall(sethiddenproperty, workspace, "InterpolationThrottling", Enum.InterpolationThrottlingMode.Disabled)
             workspace.StreamingEnabled = true
 
@@ -178,7 +190,6 @@ BoostSec:AddToggle("BoostFPS", {
                 end
             end
         else
-            -- Hoàn tác cơ bản
             workspace.StreamingEnabled = false
         end
     end
@@ -190,13 +201,11 @@ BoostSec:AddToggle("UltraBoost", {
     Callback = function(v)
         Settings.UltraBoost = v
         SaveSettings()
-
         if v then
             for _,part in pairs(workspace:GetDescendants()) do
                 if part:IsA("MeshPart") then part.RenderFidelity = Enum.RenderFidelity.Performance end
                 if part:IsA("BasePart") then part.Material = Enum.Material.SmoothPlastic end
             end
-        --else (Không hoàn tác an toàn)
         end
     end
 })
@@ -207,13 +216,11 @@ BoostSec:AddToggle("MobileBoost", {
     Callback = function(v)
         Settings.MobileBoost = v
         SaveSettings()
-
         if v then
             settings().Rendering.QualityLevel = 1
             Lighting.GlobalShadows = false
             Lighting.FogEnd = 200
         else
-            -- Hoàn tác: Khôi phục các cài đặt đồ họa cơ bản
             settings().Rendering.QualityLevel = DefaultSettings.QualityLevel
             Lighting.GlobalShadows = DefaultSettings.GlobalShadows
             Lighting.FogEnd = DefaultSettings.FogEnd
@@ -227,12 +234,10 @@ BoostSec:AddToggle("LowPoly", {
     Callback = function(v)
         Settings.AutoLowPoly = v
         SaveSettings()
-
         if v then
             for _,a in pairs(workspace:GetDescendants()) do
                 if a:IsA("UnionOperation") then a.CollisionFidelity = Enum.CollisionFidelity.Box end
             end
-        --else (Không hoàn tác an toàn)
         end
     end
 })
@@ -253,8 +258,6 @@ RunService.Heartbeat:Connect(function()
     local now = tick()
     fps = 1 / (now - lastTick)
     lastTick = now
-
-    -- Tối ưu hóa: Chỉ cập nhật Label 5 lần/giây (mỗi 0.2 giây)
     if now - lastUpdate > 0.2 then
         fpsLabel:SetText("FPS: ".. math.floor(fps))
         lastUpdate = now
@@ -262,7 +265,6 @@ RunService.Heartbeat:Connect(function()
 end)
 
 FPSBox:AddButton(Lang[Settings.Language].mode, function()
-    -- Áp dụng chế độ Turbo Mode
     settings().Rendering.QualityLevel = "Level01"
     Lighting.GlobalShadows = false
 end)
@@ -286,16 +288,22 @@ LangBox:AddDropdown("LangDrop", {
 
 local ThemeBox = SettingsTab:AddRightGroupbox(Lang[Settings.Language].theme)
 
-ThemeBox:AddDropdown("ColorTheme", {
+local ThemeDropdown = ThemeBox:AddDropdown("ColorTheme", {
     Values = {"Blue", "Red", "Pink"},
     Default = Settings.Theme,
     Text = Lang[Settings.Language].theme,
     Callback = function(v)
         Settings.Theme = v
         SaveSettings()
-        ApplyTheme(v)
+        ApplyTheme(v) -- Gọi hàm ApplyTheme đã được bảo vệ
     end
 })
+
+-- Tự động vô hiệu hóa Dropdown nếu Theming thất bại
+if not ThemingEnabled then
+    ThemeDropdown:SetEnabled(false) -- Vô hiệu hóa dropdown
+    ThemeBox:AddLabel("Theme disabled (Load Fail)"); -- Thêm nhãn báo lỗi
+end
 
 --========================================================--
 --  MINIMIZE UI
