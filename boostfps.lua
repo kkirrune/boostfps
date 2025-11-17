@@ -1,33 +1,32 @@
--- BOOST FPS RAYFIELD-LIKE (MULTI-LANGUAGE + SMART ANTI-LAG + ANIMATION)
--- UI kiểu Rayfield-light; safe client-only; supports PC + Mobile touch
--- Languages: EN, VI, ES, PT, FR, TR, RU, KR, CN, JP
+-- BOOST FPS RAYFIELD-LIKE (HIGHLY COMPATIBLE VERSION)
+-- Optimized for Executors with blocked or restricted APIs, such as Volcano.
 
--- ====== CONFIG ======
+-- ====== CONFIG (DEFAULT TO ENGLISH) ======
 local Config = {
     Theme = {
         Background = Color3.fromRGB(14, 22, 22),
         Panel = Color3.fromRGB(21, 30, 30),
-        Accent = Color3.fromRGB(84, 176, 160), -- Xanh ngọc
+        Accent = Color3.fromRGB(84, 176, 160),
         Text = Color3.fromRGB(230, 236, 235),
         SubText = Color3.fromRGB(160, 170, 168),
     },
-    Language = "EN", -- Mặc định Tiếng Việt
+    Language = "EN", -- ĐÃ ĐẶT LÀ EN (TIẾNG ANH) THEO YÊU CẦU CỦA BẠN
     AntiBan = {
-        MinDelay = 0.12,
-        MaxDelay = 0.45,
-        BatchSize = 40,
-        Jitter = 0.08,
+        MinDelay = 0.1,
+        MaxDelay = 0.3,
+        BatchSize = 50,
+        Jitter = 0.05,
     },
-    MobileScale = 1.0, -- Will auto adjust
+    MobileScale = 1.0, 
 }
 
 -- ====== LANGUAGE STRINGS ======
 local LANG = {
     EN = {
-        Title = "Boost FPS | UltraSafe", Hint = "Tip: Turn off when spawning bosses", KillAura = "Remove Textures/Decals", AutoUpgrade = "Disable Particles/FX", SpeedBoost = "Lower Materials (Plastic)", Lighting = "Disable Lighting Effects", Mesh = "Strip Mesh Textures (LOD)", BoostAll = "BOOST MAX (Safe)", Restore = "Restore (Teleport)", Language = "Language",
+        Title = "Boost FPS | Safe Mode", Hint = "Tip: Turn off when spawning bosses", KillAura = "Remove Textures/Decals", AutoUpgrade = "Disable Particles/FX", SpeedBoost = "Lower Materials (Plastic)", Lighting = "Disable Lighting Effects", Mesh = "Strip Mesh Textures (LOD)", BoostAll = "BOOST MAX (Safe)", Restore = "Restore (Teleport)", Language = "Language",
     },
     VI = {
-        Title = "Tăng FPS | An Toàn", Hint = "Lưu ý: Tắt khi Boss/Event spawn", KillAura = "Xóa Texture/Decal", AutoUpgrade = "Tắt Particles/Hiệu ứng FX", SpeedBoost = "Giảm Material (Plastic)", Lighting = "Tắt Hiệu Ứng Lighting", Mesh = "Xóa Texture Mesh (LOD)", BoostAll = "TĂNG MAX (An Toàn)", Restore = "Khôi phục (Teleport)", Language = "Ngôn ngữ",
+        Title = "Tăng FPS | Chế Độ An Toàn", Hint = "Lưu ý: Tắt khi Boss/Event spawn", KillAura = "Xóa Texture/Decal", AutoUpgrade = "Tắt Particles/Hiệu ứng FX", SpeedBoost = "Giảm Material (Plastic)", Lighting = "Tắt Hiệu Ứng Lighting", Mesh = "Xóa Texture Mesh (LOD)", BoostAll = "TĂNG MAX (An Toàn)", Restore = "Khôi phục (Teleport)", Language = "Ngôn ngữ",
     },
     ES = {
         Title = "Aumentar FPS | Seguro", Hint = "Consejo: Apaga al spawnear jefes", KillAura = "Eliminar Texturas", AutoUpgrade = "Desactivar Partículas", SpeedBoost = "Reducir Materiales", Lighting = "Desactivar Iluminación", Mesh = "Eliminar Texturas Mesh", BoostAll = "BOOST MÁX (Seguro)", Restore = "Restaurar (Teleport)", Language = "Idioma",
@@ -56,24 +55,22 @@ local LANG = {
 }
 local AvailableLanguages = {'VI', 'EN', 'ES', 'PT', 'FR', 'TR', 'RU', 'KR', 'CN', 'JP'}
 
--- ====== SERVICES & HELPERS ======
+-- ====== SERVICES & HELPERS (Optimized Service calls) ======
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer or Players.PlayerAdded:Wait()
 local UIS = game:GetService("UserInputService")
 local Lighting = game:GetService("Lighting")
 local TeleportService = game:GetService("TeleportService")
 local TweenService = game:GetService("TweenService")
-local RunService = game:GetService("RunService")
 local Debris = game:GetService("Debris")
 
--- Anti-Lag/Jitter Delay
 local function randDelay()
     local a = Config.AntiBan.MinDelay
     local b = Config.AntiBan.MaxDelay
     return a + math.random() * (b - a) + (math.random()-0.5) * Config.AntiBan.Jitter
 end
 
--- Process large lists in batches to avoid spikes (action splitting)
+-- Process large lists in batches (batch processing)
 local function batchProcess(list, worker)
     local batchSize = Config.AntiBan.BatchSize
     task.spawn(function()
@@ -81,38 +78,25 @@ local function batchProcess(list, worker)
         while i <= #list do
             local endI = math.min(#list, i + batchSize - 1)
             for j = i, endI do
-                -- Sử dụng task.spawn nhỏ để đảm bảo không có pcall nào bị treo
-                task.spawn(function()
-                    pcall(worker, list[j])
-                end)
+                -- Use pcall to prevent script crash if an element errors
+                pcall(worker, list[j])
             end
             i = endI + 1
-            task.wait(randDelay()) -- Phân tách hành động
+            task.wait(randDelay()) 
         end
     end)
 end
 
--- Detect mobile and scale UI
-local function isMobile()
-    return UIS.TouchEnabled and not UIS.KeyboardEnabled and not UIS.MouseEnabled
-end
-
-if isMobile() then
-    Config.MobileScale = 1.2
-else
-    Config.MobileScale = 1.0
-end
-
--- ====== SAFE ACTIONS (No destructive changes to gameplay) ======
-
+-- Check if object should be optimized (avoid player objects)
 local function shouldOptimize(instance)
-    -- KHÔNG TỐI ƯU HÓA các thành phần quan trọng của người chơi (tránh gián đoạn giao diện/trang bị)
     return not instance:IsDescendantOf(LocalPlayer.Character or {})
         and not instance:IsDescendantOf(LocalPlayer:FindFirstChild("PlayerGui") or {})
         and not instance:IsDescendantOf(LocalPlayer:FindFirstChild("Backpack") or {})
 end
 
--- Safe: Disable particle-type objects (disable, don't destroy)
+-- ===== OPTIMIZATION ACTIONS (Using only basic commands) =====
+
+-- Safe: Disable particle-type objects
 local function disableEmittersSafe(root)
     local found = {}
     for _, v in ipairs(root:GetDescendants()) do
@@ -125,7 +109,7 @@ local function disableEmittersSafe(root)
     end)
 end
 
--- Safe: Hide decals/textures by setting Transparency = 1 (KillAura)
+-- Safe: Hide decals/textures (Mainly setting Transparency = 1)
 local function hideDecalsSafe(root)
     local found = {}
     for _, v in ipairs(root:GetDescendants()) do
@@ -135,17 +119,33 @@ local function hideDecalsSafe(root)
     end
     batchProcess(found, function(obj)
         if obj:IsA("SurfaceAppearance") then
-            -- Tắt SurfaceAppearance để hiển thị vật liệu mặc định
-            Debris:AddItem(obj, 0) -- Xóa SurfaceAppearance một cách an toàn
+            -- Remove SurfaceAppearance (often causes lag)
+            Debris:AddItem(obj, 0) 
         elseif obj.Transparency ~= nil then
             obj.Transparency = 1
         elseif obj.Texture then
-            obj.Texture = "" -- Xóa Texture ID
+            obj.Texture = "" 
         end
     end)
 end
 
--- Safe: Set MeshPart textureID blank and set RenderFidelity to Performance (LOD)
+-- Safe: Reduce materials to SmoothPlastic and Reflectance = 0
+local function reduceMaterialsSafe(root)
+    local found = {}
+    -- Only look for BasePart (reduce search load)
+    for _, v in ipairs(root:GetDescendants()) do
+        if v:IsA("BasePart") and shouldOptimize(v) then
+            table.insert(found, v)
+        end
+    end
+    batchProcess(found, function(part)
+        -- Use enum code if necessary, but string name is safest on some executors
+        part.Material = Enum.Material.SmoothPlastic 
+        part.Reflectance = 0
+    end)
+end
+
+-- Safe: Set MeshPart textureID blank and set RenderFidelity (LOD)
 local function optimizeMeshPartsSafe(root)
     local found = {}
     for _, v in ipairs(root:GetDescendants()) do
@@ -157,52 +157,35 @@ local function optimizeMeshPartsSafe(root)
         if mesh.TextureID and mesh.TextureID ~= "" then
             mesh.TextureID = ""
         end
-        if mesh.RenderFidelity then
+        -- Use pcall because RenderFidelity might be restricted
+        pcall(function() 
             mesh.RenderFidelity = Enum.RenderFidelity.Performance
-        end
-    end)
-end
-
--- Safe: Reduce materials to SmoothPlastic and Reflectance = 0
-local function reduceMaterialsSafe(root)
-    local found = {}
-    for _, v in ipairs(root:GetDescendants()) do
-        if v:IsA("BasePart") and shouldOptimize(v) then
-            table.insert(found, v)
-        end
-    end
-    batchProcess(found, function(part)
-        part.Material = Enum.Material.SmoothPlastic
-        part.Reflectance = 0
+        end)
     end)
 end
 
 -- Lighting + post-processing safe removal
 local function optimizeLightingSafe()
     pcall(function()
-        -- Tắt bóng đổ
+        -- Only disable shadows and basic effects
         Lighting.GlobalShadows = false
         
-        -- Cài đặt chất lượng đồ họa thấp nhất (Client Side Setting)
-        settings().Rendering.QualityLevel = 1 
-        settings().Rendering.AutomaticLevelOfDetail = true
-
-        -- Xóa/Vô hiệu hóa các hiệu ứng nặng trong Lighting
+        -- Remove heavy PostEffects
         for _, eff in ipairs(Lighting:GetChildren()) do
             local cls = eff.ClassName
             if (cls == "BloomEffect" or cls == "SunRaysEffect" or cls == "ColorCorrectionEffect" or cls == "DepthOfFieldEffect" or cls == "AmbientOcclusion") then
-                if eff.Enabled ~= nil then
-                    pcall(function() eff.Enabled = false end)
-                end
+                pcall(function() eff.Enabled = false end)
             end
         end
+        
+        -- Try to set graphics quality to lowest (Might be restricted)
+        pcall(function() settings().Rendering.QualityLevel = 1 end)
     end)
 end
 
--- Combined apply sequence with smart anti-ban splitting and jitter
+-- Combined apply sequence
 local function applyBoostSafe()
     task.spawn(function()
-        -- sequence with small waits to mimic human actions
         task.wait(randDelay())
         hideDecalsSafe(workspace); task.wait(randDelay())
         disableEmittersSafe(workspace); task.wait(randDelay())
@@ -212,7 +195,7 @@ local function applyBoostSafe()
     end)
 end
 
--- Revert: Teleport is the safest way to revert most client-side graphic changes
+-- Revert: Teleport (Safest way to revert)
 local function revertSafe()
     pcall(function()
         TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId)
@@ -221,14 +204,9 @@ end
 
 -- Toggles state table
 local TogglesState = {
-    texture = false,
-    particles = false,
-    materials = false,
-    lighting = false,
-    mesh = false,
+    texture = false, particles = false, materials = false, lighting = false, mesh = false,
 }
 
--- The actual functions to run when toggled
 local ToggleActions = {
     texture = function(state) if state then hideDecalsSafe(workspace) end end,
     particles = function(state) if state then disableEmittersSafe(workspace) end end,
@@ -237,9 +215,8 @@ local ToggleActions = {
     mesh = function(state) if state then optimizeMeshPartsSafe(workspace) end end,
 }
 
--- ====== UI & ANIMATION LOGIC ======
+-- ====== UI SETUP (Rayfield-like structure preserved) ======
 
--- Remove existing GUI if present
 if game.CoreGui:FindFirstChild("BoostFPS_RayUI") then
     game.CoreGui:FindFirstChild("BoostFPS_RayUI"):Destroy()
 end
@@ -249,36 +226,29 @@ ScreenGui.Name = "BoostFPS_RayUI"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = game.CoreGui
 
--- Main window (Initial position OFF-SCREEN for animation)
 local Main = Instance.new("Frame")
 Main.Name = "Main"
-Main.Size = UDim2.new(0.3, 0, 0.65, 0) -- Use scale for responsiveness
+Main.Size = UDim2.new(0.3, 0, 0.65, 0) 
 Main.Position = UDim2.new(-1, 0, 0.5, 0) -- Start off-screen (left)
-Main.AnchorPoint = Vector2.new(0, 0.5) -- Anchor center-left
+Main.AnchorPoint = Vector2.new(0, 0.5) 
 Main.BackgroundColor3 = Config.Theme.Panel
 Main.BorderSizePixel = 0
 Main.ClipsDescendants = true
 Main.Parent = ScreenGui
 Main.Active = true
 Main.Draggable = true
-Main.Visible = false -- Start invisible
+Main.Visible = false 
 
--- Utility function to handle the opening animation
 local function animateIn(uiFrame, duration)
-    local targetPosition = UDim2.new(0.02, 0, 0.5, 0) -- End position: 2% from left, vertically centered
+    local targetPosition = UDim2.new(0.02, 0, 0.5, 0) 
     
     if uiFrame then
         uiFrame.Visible = true
-        
-        -- Start with a small fade in
-        uiFrame.Transparency = 1
+        uiFrame.Transparency = 1 
         
         local info = TweenInfo.new(duration, Enum.EasingStyle.Exponential, Enum.EasingDirection.Out)
         
-        -- Tween position (Slide)
         TweenService:Create(uiFrame, info, {Position = targetPosition}):Play()
-
-        -- Tween transparency (Fade)
         TweenService:Create(uiFrame, TweenInfo.new(duration/2), {BackgroundTransparency = 0.1}):Play()
     end
 end
@@ -321,12 +291,11 @@ ContentPanel.ClipsDescendants = true
 local ScrollFrame = Instance.new("ScrollingFrame", ContentPanel)
 ScrollFrame.Size = UDim2.new(1, 0, 1, -110 * Config.MobileScale)
 ScrollFrame.BackgroundTransparency = 1
-ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, 400) -- Will be updated dynamically
+ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, 400) 
 ScrollFrame.ScrollBarThickness = 6
 ScrollFrame.ScrollBarImageColor3 = Config.Theme.Accent
 ScrollFrame.BorderSizePixel = 0
 
--- create content entry factory (label + toggle)
 local function createEntry(parent, key, text, y)
     local frame = Instance.new("Frame", parent)
     frame.Size = UDim2.new(1, -24, 0, 54 * Config.MobileScale)
@@ -368,7 +337,6 @@ local function createEntry(parent, key, text, y)
     return {frame=frame, label=label, toggle=toggle, indicator=indicator}
 end
 
--- Entries in ScrollFrame
 local entries = {}
 entries.texture = createEntry(ScrollFrame, "texture", LANG[Config.Language].KillAura, 1)
 entries.particles = createEntry(ScrollFrame, "particles", LANG[Config.Language].AutoUpgrade, 2)
@@ -376,7 +344,6 @@ entries.materials = createEntry(ScrollFrame, "materials", LANG[Config.Language].
 entries.lighting = createEntry(ScrollFrame, "lighting", LANG[Config.Language].Lighting, 4)
 entries.mesh = createEntry(ScrollFrame, "mesh", LANG[Config.Language].Mesh, 5)
 
--- Update CanvasSize
 ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, (5 * (54 * Config.MobileScale + 6) + 12))
 
 -- Buttons bottom
@@ -400,7 +367,6 @@ btnRestore.TextScaled = true
 btnRestore.TextColor3 = Config.Theme.Text
 btnRestore.BorderSizePixel = 0
 
--- Helper to toggle indicators visually with animation
 local function setIndicator(ind, on)
     pcall(function()
         local targetX = on and 0.5 or 0.05
@@ -413,12 +379,12 @@ local function setIndicator(ind, on)
     end)
 end
 
--- Initial indicators off
 for key, entry in pairs(entries) do
     setIndicator(entry.indicator, false)
 end
 
 -- ====== INTERACTIONS & SMART DELAY BINDING ======
+
 local debounce = {}
 
 local function safeToggle(key, entry)
@@ -428,23 +394,16 @@ local function safeToggle(key, entry)
     TogglesState[key] = not TogglesState[key]
     local state = TogglesState[key]
     
-    -- Small randomized delay before performing to mimic human click
     local d = randDelay()
     task.spawn(function()
         task.wait(d)
-        
-        -- Run the graphics action safely
         ToggleActions[key](state)
-        
-        -- Update UI
         setIndicator(entry.indicator, state)
-        
         task.wait(0.08)
         debounce[key] = false
     end)
 end
 
--- Bind entry toggles to safe actions
 entries.texture.toggle.MouseButton1Click:Connect(function()
     safeToggle("texture", entries.texture)
 end)
@@ -461,12 +420,10 @@ entries.mesh.toggle.MouseButton1Click:Connect(function()
     safeToggle("mesh", entries.mesh)
 end)
 
--- Boost All button: performs sequence with splitting and jitter
 btnBoost.MouseButton1Click:Connect(function()
     if debounce["boost"] then return end
     debounce["boost"] = true
     applyBoostSafe()
-    -- Update all toggles visually after boost is applied
     for key, entry in pairs(entries) do
         TogglesState[key] = true
         setIndicator(entry.indicator, true)
@@ -486,7 +443,6 @@ btnRestore.MouseButton1Click:Connect(function()
     end)
 end)
 
--- Language selection popup (simple)
 LangBtn.MouseButton1Click:Connect(function()
     if ScreenGui:FindFirstChild("LangMenu") then
         ScreenGui.LangMenu:Destroy()
@@ -495,7 +451,6 @@ LangBtn.MouseButton1Click:Connect(function()
     
     local menu = Instance.new("Frame", ScreenGui)
     menu.Name = "LangMenu"
-    -- Kích thước tương đối dựa trên LangBtn
     menu.Size = UDim2.new(0, 160, 0, 34 * #AvailableLanguages) 
     menu.Position = UDim2.fromOffset(LangBtn.AbsolutePosition.X, LangBtn.AbsolutePosition.Y + LangBtn.AbsoluteSize.Y)
     menu.BackgroundColor3 = Config.Theme.Panel
@@ -515,7 +470,6 @@ LangBtn.MouseButton1Click:Connect(function()
         b.MouseButton1Click:Connect(function()
             Config.Language = code
             
-            -- Update all texts
             Title.Text = LANG[code].Title
             LangBtn.Text = LANG[code].Language
             btnBoost.Text = LANG[code].BoostAll
@@ -531,11 +485,10 @@ LangBtn.MouseButton1Click:Connect(function()
         end)
     end
 
-    -- dismiss on outside click
     local conn
     conn = UIS.InputBegan:Connect(function(inp)
         if inp.UserInputType == Enum.UserInputType.MouseButton1 or inp.UserInputType == Enum.UserInputType.Touch then
-            task.wait(0.1) -- wait for button to register
+            task.wait(0.1) 
             if menu and menu.Parent then
                 local mpos = UIS:GetMouseLocation()
                 local rect = Rect.new(menu.AbsolutePosition, menu.AbsolutePosition + Vector2.new(menu.AbsoluteSize.X, menu.AbsoluteSize.Y))
@@ -548,8 +501,6 @@ LangBtn.MouseButton1Click:Connect(function()
     end)
 end)
 
--- Execute the opening animation once the UI is ready
-animateIn(Main, 0.4) -- 0.4 seconds animation time
+animateIn(Main, 0.4) 
 
--- print ready
-print("[BoostFPS] Rayfield-like UI loaded with Animation. Language:", Config.Language)
+print("[BoostFPS] Rayfield-like UI loaded. Language:", Config.Language)
