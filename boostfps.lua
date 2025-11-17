@@ -9,6 +9,7 @@ local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
+local Lighting = game:GetService("Lighting")
 
 --========================================================--
 --  SETTINGS FILE (AUTO SAVE)
@@ -19,9 +20,17 @@ local SaveFile = "BoostFPSHub_Settings.json"
 local Settings = {
     Language = "EN",
     Theme = "Blue",
+    BoostFPS = false,
     AutoLowPoly = false,
     MobileBoost = false,
     UltraBoost = false,
+}
+
+-- Lưu trữ các giá trị mặc định để hoàn tác (Revert) an toàn
+local DefaultSettings = {
+    QualityLevel = settings().Rendering.QualityLevel,
+    GlobalShadows = Lighting.GlobalShadows,
+    FogEnd = Lighting.FogEnd,
 }
 
 local function LoadSettings()
@@ -40,6 +49,13 @@ local function SaveSettings()
 end
 
 LoadSettings()
+
+-- Hàm phụ trợ để áp dụng Theme đã lưu
+local function ApplyTheme(themeName)
+    if themeName == "Blue" then Library:SetTheme("Default") end
+    if themeName == "Red" then Library:SetTheme("Discord") end
+    if themeName == "Pink" then Library:SetTheme("Fatality") end
+end
 
 --========================================================--
 --  LANGUAGES
@@ -92,6 +108,9 @@ local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/violi
 local ThemeManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/Addons/ThemeManager.lua"))()
 local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/Addons/SaveManager.lua"))()
 
+-- Áp dụng theme đã lưu ngay sau khi tải settings và thư viện
+ApplyTheme(Settings.Theme)
+
 local UI = Library:CreateWindow({
     Title = Lang[Settings.Language].title .. "  |  V3",
     Center = true,
@@ -114,9 +133,9 @@ local BoostSec = MainTab:AddLeftGroupbox("Optimization")
 
 BoostSec:AddToggle("BoostFPS", {
     Text = Lang[Settings.Language].boost,
-    Default = false,
+    Default = Settings.BoostFPS,
     Callback = function(v)
-        Settings.UltraBoost = v
+        Settings.BoostFPS = v
         SaveSettings()
 
         if v then
@@ -129,7 +148,9 @@ BoostSec:AddToggle("BoostFPS", {
                 end
             end
         else
-            -- No revert (safe mode)
+            -- Hoàn tác: Reset StreamingEnabled và Interpolation Throttling (nếu có thể)
+            workspace.StreamingEnabled = false
+            -- Không khôi phục Particle/Trail vì không lưu được trạng thái ban đầu
         end
     end
 })
@@ -142,10 +163,12 @@ BoostSec:AddToggle("UltraBoost", {
         SaveSettings()
 
         if v then
-            for _,v in pairs(workspace:GetDescendants()) do
-                if v:IsA("MeshPart") then v.RenderFidelity = Enum.RenderFidelity.Performance end
-                if v:IsA("BasePart") then v.Material = Enum.Material.SmoothPlastic end
+            for _,part in pairs(workspace:GetDescendants()) do
+                if part:IsA("MeshPart") then part.RenderFidelity = Enum.RenderFidelity.Performance end
+                if part:IsA("BasePart") then part.Material = Enum.Material.SmoothPlastic end
             end
+        else
+            -- Không có hoàn tác an toàn vì không thể lưu tất cả vật liệu và RenderFidelity ban đầu của các Parts
         end
     end
 })
@@ -159,8 +182,13 @@ BoostSec:AddToggle("MobileBoost", {
 
         if v then
             settings().Rendering.QualityLevel = 1
-            game.Lighting.GlobalShadows = false
-            game.Lighting.FogEnd = 200
+            Lighting.GlobalShadows = false
+            Lighting.FogEnd = 200
+        else
+            -- Hoàn tác: Khôi phục các cài đặt đồ họa cơ bản
+            settings().Rendering.QualityLevel = DefaultSettings.QualityLevel
+            Lighting.GlobalShadows = DefaultSettings.GlobalShadows
+            Lighting.FogEnd = DefaultSettings.FogEnd
         end
     end
 })
@@ -176,6 +204,8 @@ BoostSec:AddToggle("LowPoly", {
             for _,a in pairs(workspace:GetDescendants()) do
                 if a:IsA("UnionOperation") then a.CollisionFidelity = Enum.CollisionFidelity.Box end
             end
+        else
+            -- Không có hoàn tác an toàn vì không thể lưu tất cả CollisionFidelity ban đầu
         end
     end
 })
@@ -188,6 +218,7 @@ local FPSBox = FPSTab:AddLeftGroupbox("FPS Monitor")
 
 local fps = 0
 local lastTick = tick()
+local lastUpdate = tick() -- Biến theo dõi lần cập nhật gần nhất
 
 local fpsLabel = FPSBox:AddLabel("FPS: 0")
 
@@ -195,19 +226,25 @@ RunService.Heartbeat:Connect(function()
     local now = tick()
     fps = 1 / (now - lastTick)
     lastTick = now
-    fpsLabel:SetText("FPS: ".. math.floor(fps))
+
+    -- Tối ưu hóa: Chỉ cập nhật Label 5 lần/giây (mỗi 0.2 giây)
+    if now - lastUpdate > 0.2 then
+        fpsLabel:SetText("FPS: ".. math.floor(fps))
+        lastUpdate = now
+    end
 end)
 
 FPSBox:AddButton(Lang[Settings.Language].mode, function()
+    -- Áp dụng chế độ Turbo Mode
     settings().Rendering.QualityLevel = "Level01"
-    game.Lighting.GlobalShadows = false
+    Lighting.GlobalShadows = false
 end)
 
 --========================================================--
 --  SETTINGS TAB
 --========================================================--
 
-local LangBox = SettingsTab:AddLeftGroupbox("Language")
+local LangBox = SettingsTab:AddLeftGroupbox(Lang[Settings.Language].language)
 
 LangBox:AddDropdown("LangDrop", {
     Values = {"EN","JP","KR"},
@@ -220,7 +257,8 @@ LangBox:AddDropdown("LangDrop", {
     end
 })
 
-local ThemeBox = SettingsTab:AddLeftGroupbox("Theme")
+-- Đã chuyển sang AddRightGroupbox
+local ThemeBox = SettingsTab:AddRightGroupbox(Lang[Settings.Language].theme)
 
 ThemeBox:AddDropdown("ColorTheme", {
     Values = {"Blue", "Red", "Pink"},
@@ -229,9 +267,7 @@ ThemeBox:AddDropdown("ColorTheme", {
     Callback = function(v)
         Settings.Theme = v
         SaveSettings()
-        if v == "Blue" then Library:SetTheme("Default") end
-        if v == "Red" then Library:SetTheme("Discord") end
-        if v == "Pink" then Library:SetTheme("Fatality") end
+        ApplyTheme(v)
     end
 })
 
@@ -241,10 +277,11 @@ ThemeBox:AddDropdown("ColorTheme", {
 
 local Minimized = false
 local MinBtn = Instance.new("TextButton")
-MinBtn.Parent = UI.MainFrame
+-- Sửa: Đặt nút vào TopBar
+MinBtn.Parent = UI.MainFrame.TopBar
 MinBtn.Text = "-"
-MinBtn.Size = UDim2.new(0,30,0,30)
-MinBtn.Position = UDim2.new(1,-40,0,10)
+MinBtn.Size = UDim2.new(0,30,1,0)
+MinBtn.Position = UDim2.new(1,-30,0,0)
 MinBtn.BackgroundColor3 = Color3.fromRGB(40,40,40)
 
 MinBtn.MouseButton1Click:Connect(function()
@@ -254,7 +291,7 @@ MinBtn.MouseButton1Click:Connect(function()
             Size = UDim2.new(0,250,0,40)
         }):Play()
         for _,v in pairs(UI.MainFrame:GetChildren()) do
-            if v ~= MinBtn and v.Name ~= "TopBar" then
+            if v ~= MinBtn and v.Name ~= "TopBar" and v.Name ~= "TabsContainer" then
                 v.Visible = false
             end
         end
@@ -299,5 +336,5 @@ end)
 --========================================================--
 
 Library:Notify("BOOST FPS HUB LOADED ✔", 5)
--- final print
-print("[BoostFPS Hub v3 - Linoria Dark] Loaded. Locale:", LOCALE, " VIP:", tostring(Config.IsVIP))
+-- Sửa lỗi: Loại bỏ tham chiếu đến Config chưa khai báo
+print("[BoostFPS Hub v3 - Linoria Dark] Loaded. Locale:", Settings.Language)
