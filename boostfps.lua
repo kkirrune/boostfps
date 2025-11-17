@@ -1,5 +1,5 @@
 --========================================================--
--- BOOST FPS HUB V3 – Premium Linoria UI (FIXED LOAD)
+-- BOOST FPS HUB V3 – Premium Linoria UI (FINAL FIX: LOAD ERROR)
 -- Multi-Language • Auto Save • Anti-Banwave • FPS Booster
 --========================================================--
 
@@ -97,24 +97,27 @@ local Lang = {
 }
 
 --========================================================--
---  LINORIA UI LIBRARY (BUILT-IN) - Đã FIX LỖI TẢI
+--  LINORIA UI LIBRARY (BUILT-IN) - Đã SỬA LỖI TẢI NIL VALUE
 --========================================================--
 
--- Hàm tải an toàn
+-- Hàm tải an toàn với kiểm tra nil value
 local function LoadLinoriaComponent(url, name)
     local code = game:HttpGet(url)
-    if not code or code:len() < 100 then -- Kiểm tra mã tải về có hợp lệ không
-        warn("Linoria Load Error: Không thể tải " .. name .. " từ URL.")
+    if not code or code:len() < 100 then
+        print("Linoria Load Error: Không thể tải " .. name .. " từ URL.")
         return nil
     end
 
     local component, err = loadstring(code)
-    if not component then
-        warn("Linoria Execution Error: loadstring " .. name .. " thất bại: " .. tostring(err))
+    
+    -- Kiểm tra nếu loadstring thất bại hoặc không trả về hàm
+    if not component or typeof(component) ~= "function" then
+        print("Linoria Execution Error: loadstring " .. name .. " thất bại: " .. tostring(err))
         return nil
     end
 
-    return component()
+    -- Thực thi hàm (dòng 108 cũ)
+    return component() 
 end
 
 -- Tải các thành phần Linoria
@@ -122,9 +125,9 @@ local Library = LoadLinoriaComponent("https://raw.githubusercontent.com/violin-s
 local ThemeManager = LoadLinoriaComponent("https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/Addons/ThemeManager.lua", "ThemeManager")
 local SaveManager = LoadLinoriaComponent("https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/Addons/SaveManager.lua", "SaveManager")
 
--- Kiểm tra nếu thư viện chính tải thất bại
+-- Kiểm tra nếu thư viện chính tải thất bại và dừng script
 if not Library then
-    print("[BoostFPS Hub v3] FATAL ERROR: Linoria Library không thể tải. Script dừng lại.")
+    print("[BoostFPS Hub v3] FATAL ERROR: Linoria Library không thể tải. Vui lòng kiểm tra Executor/URL.")
     return
 end
 
@@ -165,7 +168,7 @@ BoostSec:AddToggle("BoostFPS", {
         SaveSettings()
 
         if v then
-            -- Chỉ sử dụng sethiddenproperty nếu Executor hỗ trợ
+            -- Sử dụng pcall để tránh lỗi nếu Executor không hỗ trợ sethiddenproperty
             pcall(sethiddenproperty, workspace, "InterpolationThrottling", Enum.InterpolationThrottlingMode.Disabled)
             workspace.StreamingEnabled = true
 
@@ -177,7 +180,6 @@ BoostSec:AddToggle("BoostFPS", {
         else
             -- Hoàn tác cơ bản
             workspace.StreamingEnabled = false
-            -- Không khôi phục Interpolation Throttling vì không an toàn
         end
     end
 })
@@ -194,8 +196,7 @@ BoostSec:AddToggle("UltraBoost", {
                 if part:IsA("MeshPart") then part.RenderFidelity = Enum.RenderFidelity.Performance end
                 if part:IsA("BasePart") then part.Material = Enum.Material.SmoothPlastic end
             end
-        else
-            -- Không có hoàn tác an toàn cho vật liệu/RenderFidelity
+        --else (Không hoàn tác an toàn)
         end
     end
 })
@@ -231,8 +232,7 @@ BoostSec:AddToggle("LowPoly", {
             for _,a in pairs(workspace:GetDescendants()) do
                 if a:IsA("UnionOperation") then a.CollisionFidelity = Enum.CollisionFidelity.Box end
             end
-        else
-            -- Không có hoàn tác an toàn cho CollisionFidelity
+        --else (Không hoàn tác an toàn)
         end
     end
 })
