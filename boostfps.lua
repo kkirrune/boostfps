@@ -1,6 +1,5 @@
 --========================================================--
--- BOOST FPS HUB V12 – VOLCANO UI (Dark Theme Tabbed) - FIXED
--- Đã sửa lỗi thông báo phiên bản hiển thị là V7.
+-- BOOST FPS HUB V12 – VOLCANO UI (Dark Theme Tabbed) - FINAL FIX
 --========================================================--
 
 --// SERVICES
@@ -9,6 +8,7 @@ local Players = game:GetService("Players")
 local Lighting = game:GetService("Lighting")
 local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
+local RunService = game:GetService("RunService")
 
 --========================================================--
 --  SETTINGS & DEFAULTS
@@ -57,33 +57,57 @@ local Lang = {
 }
 local T = Lang[Settings.Language]
 
--- CORE FUNCTIONS (Giữ nguyên)
+-- CORE FUNCTIONS (Đã Sửa Lỗi)
 local function ApplyBoost()
+    -- BOOST FPS
     if Settings.BoostFPS then pcall(sethiddenproperty, workspace, "InterpolationThrottling", Enum.InterpolationThrottlingMode.Disabled); workspace.StreamingEnabled = true
     else workspace.StreamingEnabled = false end
     
-    if Settings.UltraBoost then for _,part in pairs(workspace:GetDescendants()) do if part:IsA("MeshPart") then part.RenderFidelity = Enum.RenderFidelity.Performance end if part:IsA("BasePart") then part.Material = Enum.Material.SmoothPlastic end end end
+    -- ULTRA BOOST (Fixed RenderFidelity/SolidModel issue with pcall)
+    if Settings.UltraBoost then 
+        for _,part in pairs(workspace:GetDescendants()) do 
+            if part:IsA("MeshPart") then 
+                pcall(function() part.RenderFidelity = Enum.RenderFidelity.Performance end) -- Bọc trong pcall 
+            end 
+            if part:IsA("BasePart") then 
+                part.Material = Enum.Material.SmoothPlastic 
+            end 
+        end 
+    end
     
+    -- MOBILE BOOST
     if Settings.MobileBoost then settings().Rendering.QualityLevel = 1; Lighting.GlobalShadows = false; Lighting.FogEnd = 200
     else settings().Rendering.QualityLevel = DefaultSettings.QualityLevel; Lighting.GlobalShadows = DefaultSettings.GlobalShadows; Lighting.FogEnd = DefaultSettings.FogEnd end
     
+    -- LOW POLY & LOD
     if Settings.AutoLowPoly then for _,a in pairs(workspace:GetDescendants()) do if a:IsA("UnionOperation") then a.CollisionFidelity = Enum.CollisionFidelity.Box end end end
     if Settings.DisableLOD then pcall(sethiddenproperty, settings().Rendering, "EnableLevelOfDetail", false)
     else pcall(sethiddenproperty, settings().Rendering, "EnableLevelOfDetail", true) end
     
+    -- NO SKY
     local sky = Lighting:FindFirstChildOfClass("Sky")
     if Settings.NoSky then if sky then sky.Parent = nil end; Lighting.OutdoorAmbient = Color3.new(0.5, 0.5, 0.5); Lighting.Ambient = Color3.new(0.5, 0.5, 0.5)
     else Lighting.OutdoorAmbient = DefaultSettings.Ambient; Lighting.Ambient = DefaultSettings.Ambient end
     
-    for _, obj in ipairs(workspace:GetDescendants()) do if obj:IsA("Decal") or obj:IsA("BillboardGui") then obj.Transparency = Settings.NoDecals and 1 or 0 end end
-    for _, obj in ipairs(workspace:GetDescendants()) do if obj:IsA("Texture") or obj:IsA("WeldConstraint") then obj.Transparency = Settings.NoTextures and 1 or 0 end end
+    -- NO DECALS (Fixed BillboardGui Transparency issue)
+    for _, obj in ipairs(workspace:GetDescendants()) do 
+        if obj:IsA("Decal") then 
+            obj.Transparency = Settings.NoDecals and 1 or 0 -- Chỉ thay đổi Decal
+        end
+        -- Không thay đổi Transparency của BillboardGui để tránh lỗi
+    end
     
+    -- NO TEXTURES
+    for _, obj in ipairs(workspace:GetDescendants()) do if obj:IsA("Texture") then obj.Transparency = Settings.NoTextures and 1 or 0 end end
+    
+    -- NO WATER
     local Water = workspace:FindFirstChildOfClass("Terrain")
     if Water then
         Water.WaterWaveSize = Settings.NoWater and 0 or 1; Water.WaterWaveSpeed = Settings.NoWater and 0 or 1
         Water.WaterTransparency = Settings.NoWater and 1 or 0.5; Water.WaterReflectance = Settings.NoWater and 1 or 0.5
     end
 
+    -- ANTI-BAN & GUI & LIGHTING FX
     if Settings.AntiBan then pcall(sethiddenproperty, game:GetService("ScriptContext"), "ScriptsDisabled", true); pcall(sethiddenproperty, game:GetService("ScriptContext"), "ScriptsHidden", true)
     else pcall(sethiddenproperty, game:GetService("ScriptContext"), "ScriptsDisabled", false); pcall(sethiddenproperty, game:GetService("ScriptContext"), "ScriptsHidden", false) end
 
@@ -92,6 +116,7 @@ local function ApplyBoost()
     
     for _, fx in ipairs(Lighting:GetChildren()) do if fx:IsA("BloomEffect") or fx:IsA("ColorCorrectionEffect") or fx:IsA("DepthOfFieldEffect") or fx:IsA("SunRaysEffect") then fx.Enabled = not Settings.NoLightingFX end end
 
+    -- FPS UNLOCK
     if Settings.FPSUnlock then
         if setfpscap then setfpscap(999) end
         pcall(function() game:GetService("RunService").PreferredClientFPS = 999 end)
@@ -123,9 +148,9 @@ ScreenGui.Name = "BoostFPSHub_Main"
 ScreenGui.Parent = CoreGui 
 
 local MainPanel = Instance.new("ImageLabel")
-MainPanel.Size = UDim2.new(0, 450, 0, 400) -- Rộng hơn để chứa Tab
+MainPanel.Size = UDim2.new(0, 450, 0, 400) 
 MainPanel.Position = UDim2.new(0.5, -225, 0.5, -200)
-MainPanel.BackgroundColor3 = Color3.fromRGB(30, 30, 30) -- Màu nền tối
+MainPanel.BackgroundColor3 = Color3.fromRGB(30, 30, 30) 
 MainPanel.BorderSizePixel = 0
 MainPanel.Image = "" 
 pcall(function() MainPanel.Draggable = true end)
@@ -138,12 +163,12 @@ TitleBar.Text = T.title
 TitleBar.Font = Enum.Font.SourceSansBold
 TitleBar.TextSize = 20
 TitleBar.TextColor3 = Color3.fromRGB(220, 220, 220)
-TitleBar.BackgroundColor3 = Color3.fromRGB(20, 20, 20) -- Màu đen sẫm cho thanh tiêu đề
+TitleBar.BackgroundColor3 = Color3.fromRGB(20, 20, 20) 
 TitleBar.TextEditable = false 
 TitleBar.Parent = MainPanel
 
 local TabContainer = Instance.new("ImageLabel")
-TabContainer.Size = UDim2.new(0, 100, 1, -40) -- Chiều rộng cố định cho Tab
+TabContainer.Size = UDim2.new(0, 100, 1, -40) 
 TabContainer.Position = UDim2.new(0, 0, 0, 40)
 TabContainer.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
 TabContainer.Image = ""
@@ -160,11 +185,10 @@ local CurrentTab = nil
 local TabButtons = {}
 local TabPages = {}
 
--- Function to create a Tab Button
 local function CreateTabButton(tabName, pageContainer)
     local Button = Instance.new("ImageButton")
     Button.Size = UDim2.new(1, 0, 0, 35)
-    Button.BackgroundColor3 = Color3.fromRGB(45, 45, 45) -- Màu nút bình thường
+    Button.BackgroundColor3 = Color3.fromRGB(45, 45, 45) 
     Button.Image = ""
     Button.Parent = TabContainer
 
@@ -188,14 +212,13 @@ local function CreateTabButton(tabName, pageContainer)
             t.Button:FindFirstChildOfClass("TextBox").TextColor3 = Color3.fromRGB(180, 180, 180)
         end
         pageContainer.Visible = true
-        Button.BackgroundColor3 = Color3.fromRGB(0, 150, 200) -- Màu xanh chủ đạo khi chọn
+        Button.BackgroundColor3 = Color3.fromRGB(0, 150, 200) 
         Button:FindFirstChildOfClass("TextBox").TextColor3 = Color3.fromRGB(255, 255, 255)
         CurrentTab = tabName
     end)
     return Button
 end
 
--- Function to create a Content Page (Tab Content)
 local function CreateTabPage(name)
     local Page = Instance.new("ImageLabel")
     Page.Size = UDim2.new(1, 0, 1, 0)
@@ -212,8 +235,8 @@ local function CreateTabPage(name)
     Scroll.ScrollBarThickness = 6
     Scroll.Parent = Page
     
-    local UILayout = Instance.new("UIGridLayout") -- Grid Layout thay cho ListLayout
-    UILayout.CellSize = UDim2.new(1, 0, 0, 45) -- Chiều cao lớn hơn
+    local UILayout = Instance.new("UIGridLayout") 
+    UILayout.CellSize = UDim2.new(1, 0, 0, 45) 
     UILayout.CellPadding = UDim2.new(0, 0, 0, 10)
     UILayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
     UILayout.Parent = Scroll
@@ -222,11 +245,10 @@ local function CreateTabPage(name)
     return Scroll
 end
 
--- Function to create a Toggle inside a Scroll (Content)
 local function CreateToggleContent(parentScroll, text, settingKey)
     local Container = Instance.new("ImageLabel") 
     Container.Size = UDim2.new(1, 0, 0, 45)
-    Container.BackgroundColor3 = Color3.fromRGB(40, 40, 40) -- Nền tối hơn
+    Container.BackgroundColor3 = Color3.fromRGB(40, 40, 40) 
     Container.BorderSizePixel = 0
     Container.Image = ""
     Container.Parent = parentScroll
@@ -262,10 +284,10 @@ local function CreateToggleContent(parentScroll, text, settingKey)
     local function UpdateButtonColor(state)
         if state then
             ButtonText.Text = "ON"
-            ToggleButton.BackgroundColor3 = Color3.fromRGB(0, 150, 0) -- Xanh lá đậm
+            ToggleButton.BackgroundColor3 = Color3.fromRGB(0, 150, 0) 
         else
             ButtonText.Text = "OFF"
-            ToggleButton.BackgroundColor3 = Color3.fromRGB(150, 0, 0) -- Đỏ đậm
+            ToggleButton.BackgroundColor3 = Color3.fromRGB(150, 0, 0) 
         end
     end
 
@@ -292,7 +314,6 @@ CreateToggleContent(Tab1Scroll, T.mobile, "MobileBoost")
 CreateToggleContent(Tab1Scroll, T.lowpoly, "AutoLowPoly")
 CreateToggleContent(Tab1Scroll, T.fpsunlock, "FPSUnlock")
 CreateToggleContent(Tab1Scroll, T.antiban, "AntiBan")
--- Cập nhật CanvasSize thủ công
 Tab1Scroll.CanvasSize = UDim2.new(0, 0, 0, (45 + 10) * 6 + 10)
 
 -- 2. Tab Graphics
@@ -313,8 +334,7 @@ local Tab1Button = CreateTabButton(T.tab1, TabPages[T.tab1].Page)
 local Tab2Button = CreateTabButton(T.tab2, TabPages[T.tab2].Page)
 
 -- Auto select first tab
-Tab1Button:FireServer("MouseButton1Click")
-if Tab1Button.MouseButton1Click then Tab1Button:FireServer("MouseButton1Click") end 
+pcall(function() Tab1Button:FireServer("MouseButton1Click") end) 
 
 -- Align buttons using UIListLayout
 local TabListLayout = Instance.new("UIListLayout")
@@ -329,4 +349,4 @@ UserInputService.InputBegan:Connect(function(k,t)
     end
 end)
 
-print("[BoostFPS Hub V12] Loaded successfully on Volcano/limited Executors. Press RightShift to hide/show.") -- THÔNG BÁO CUỐI CÙNG ĐÃ ĐƯỢC SỬA
+print("[BoostFPS Hub V12] Loaded successfully on Volcano/limited Executors. Press RightShift to hide/show.")
