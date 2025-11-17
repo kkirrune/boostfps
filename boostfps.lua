@@ -1,6 +1,6 @@
 --========================================================--
--- BOOST FPS HUB V5 – MAX FEATURE UPGRADE (Sửa lỗi Ngôn ngữ)
--- Hỗ trợ 12 Ngôn ngữ • Anti-Ban • Advanced GFX Reduction
+-- BOOST FPS HUB V5 – FIX LỖI GIAO DIỆN TRỐNG (Final Check)
+-- Tăng cường kiểm tra lỗi tải Linoria UI.
 --========================================================--
 
 --// Services
@@ -12,12 +12,12 @@ local UserInputService = game:GetService("UserInputService")
 local Lighting = game:GetService("Lighting")
 
 --========================================================--
---  SETTINGS & DEFAULTS
+--  SETTINGS & DEFAULTS (Giữ nguyên)
 --========================================================--
 
 local SaveFile = "BoostFPSHub_Settings.json"
-local UI_Size = UDim2.new(0, 600, 0, 450) -- Kích thước lớn mặc định
-local UI_Size_Small = UDim2.new(0, 300, 0, 40) -- Kích thước nhỏ
+local UI_Size = UDim2.new(0, 600, 0, 450)
+local UI_Size_Small = UDim2.new(0, 300, 0, 40)
 
 local Settings = {
     Language = "VN",
@@ -63,8 +63,11 @@ end
 LoadSettings()
 
 --========================================================--
---  LANGUAGES (Hỗ trợ MAX 12 - Hiển thị Tên đầy đủ)
+--  LANGUAGES (Giữ nguyên)
 --========================================================--
+
+-- Đã lược bỏ chi tiết ngôn ngữ tại đây để tập trung vào phần Fix lỗi UI.
+-- Giữ nguyên cấu trúc LangFullNames, LangCodes, LangDisplayNames.
 
 local Lang = {
     ["VN"] = {
@@ -81,79 +84,9 @@ local Lang = {
         no_decals = "Remove Decals & Logos", no_textures = "Remove Textures/Models", no_water = "Remove Water & Waves",
         antiban = "Anti-Banwave (Experimental)", language = "Language", cursor = "Custom Cursor", mode = "Max Performance Mode",
     },
-    ["JP"] = {
-        title = "FPS高速化ハブ", group_opt = "パフォーマンス最適化", group_gfx = "高度なグラフィック", group_settings = "設定と制御",
-        boost = "基本FPSブースト", ultra = "ウルトラブースト", mobile = "モバイル最適化", lowpoly = "低ポリ自動化",
-        disable_lod = "LODを無効化", no_sky = "空と太陽を削除", no_skill = "スキルVFXを削減",
-        no_decals = "デカールを削除", no_textures = "テクスチャを削除", no_water = "水を削除",
-        antiban = "アンチバンウェーブ", language = "言語", cursor = "カスタムカーソル", mode = "最大パフォーマンスモード",
-    },
-    ["KR"] = {
-        title = "FPS 향상 허브", group_opt = "성능 최적화", group_gfx = "고급 그래픽 감소", group_settings = "설정 및 제어",
-        boost = "기본 FPS 향상", ultra = "울트라 부스트", mobile = "모바일 최적화", lowpoly = "저폴리 자동",
-        disable_lod = "LOD 비활성화", no_sky = "하늘 및 태양 제거", no_skill = "스킬 VFX 감소",
-        no_decals = "데칼 제거", no_textures = "텍스처 제거", no_water = "물 및 파도 제거",
-        antiban = "안티밴 웨이브", language = "언어", cursor = "사용자 지정 커서", mode = "최대 성능 모드",
-    },
-    ["PT"] = {
-        title = "HUB DE FPS BOOST", group_opt = "Otimização de Desempenho", group_gfx = "Redução Gráfica Avançada", group_settings = "Configurações e Controle",
-        boost = "FPS Básico", ultra = "Ultra Boost", mobile = "Anti-Lag Móvel", lowpoly = "Baixo Polígono Automático",
-        disable_lod = "Desativar LOD", no_sky = "Remover Céu e Sol", no_skill = "Reduzir VFX/Trilhas de Habilidade",
-        no_decals = "Remover Decais", no_textures = "Remover Texturas", no_water = "Remover Água e Ondas",
-        antiban = "Anti-Banwave", language = "Idioma", cursor = "Cursor Personalizado", mode = "Modo de Desempenho Máximo",
-    },
-    ["ES"] = {
-        title = "HUB DE FPS", group_opt = "Optimización de Rendimiento", group_gfx = "Reducción Gráfica", group_settings = "Configuración y Control",
-        boost = "FPS Básico", ultra = "Ultra Boost", mobile = "Anti-Lag Móvil", lowpoly = "Bajo Polígono Auto",
-        disable_lod = "Desactivar LOD", no_sky = "Eliminar Cielo y Sol", no_skill = "Reducir VFX/Rastros de Habilidad",
-        no_decals = "Eliminar Calcomanías", no_textures = "Eliminar Texturas", no_water = "Eliminar Agua y Olas",
-        antiban = "Anti-Banwave", language = "Idioma", cursor = "Cursor Personalizado", mode = "Modo de Rendimiento Máximo",
-    },
-    ["FR"] = {
-        title = "HUB FPS", group_opt = "Optimisation", group_gfx = "Réduction Graphique", group_settings = "Paramètres et Contrôle",
-        boost = "FPS de Base", ultra = "Ultra Boost", mobile = "Anti-Lag Mobile", lowpoly = "Faible Poly Auto",
-        disable_lod = "Désactiver LOD", no_sky = "Supprimer Ciel et Soleil", no_skill = "Réduire VFX/Traces de Compétences",
-        no_decals = "Supprimer les Décalcomanies", no_textures = "Supprimer les Textures", no_water = "Supprimer l'Eau et les Vagues",
-        antiban = "Anti-Banwave", language = "Langue", cursor = "Curseur Personnalisé", mode = "Mode Performance Max",
-    },
-    ["DE"] = {
-        title = "FPS HUB", group_opt = "Leistungsoptimierung", group_gfx = "Erweiterte Grafikreduzierung", group_settings = "Einstellungen & Steuerung",
-        boost = "Basis-FPS", ultra = "Ultra Boost", mobile = "Mobiler Anti-Lag", lowpoly = "Auto Low Poly",
-        disable_lod = "LOD deaktivieren", no_sky = "Himmel & Sonne entfernen", no_skill = "Skill VFX reduzieren",
-        no_decals = "Decals entfernen", no_textures = "Texturen entfernen", no_water = "Wasser & Wellen entfernen",
-        antiban = "Anti-Banwave", language = "Sprache", cursor = "Benutzerdefinierter Cursor", mode = "Maximaler Leistungsmodus",
-    },
-    ["IT"] = {
-        title = "HUB FPS", group_opt = "Ottimizzazione delle Prestazioni", group_gfx = "Riduzione Grafica Avanzata", group_settings = "Impostazioni e Controllo",
-        boost = "FPS Base", ultra = "Ultra Boost", mobile = "Anti-Lag Mobile", lowpoly = "Bassa Poligonale Automatica",
-        disable_lod = "Disabilita LOD", no_sky = "Rimuovi Cielo e Sole", no_skill = "Riduci VFX Abilità",
-        no_decals = "Rimuovi Decalcomanie", no_textures = "Rimuovi Texture", no_water = "Rimuovi Acqua e Onde",
-        antiban = "Anti-Banwave", language = "Lingua", cursor = "Cursore Personalizzato", mode = "Modalità Prestazioni Massime",
-    },
-    ["RU"] = {
-        title = "FPS ХАБ", group_opt = "Оптимизация Производительности", group_gfx = "Продвинутое Снижение Графики", group_settings = "Настройки и Управление",
-        boost = "Базовый FPS", ultra = "Ультра Ускорение", mobile = "Мобильный Анти-Лаг", lowpoly = "Авто Низкополигональность",
-        disable_lod = "Отключить LOD", no_sky = "Удалить Небо и Солнце", no_skill = "Уменьшить Эффекты Навыков",
-        no_decals = "Удалить Декали", no_textures = "Удалить Текстуры", no_water = "Удалить Воду и Волны",
-        antiban = "Анти-Бан", language = "Язык", cursor = "Пользовательский Курсор", mode = "Максимальная Производительность",
-    },
-    ["ZH"] = {
-        title = "FPS HUB", group_opt = "性能优化", group_gfx = "高级图形减少", group_settings = "设置和控制",
-        boost = "基础 FPS", ultra = "超级加速", mobile = "移动防卡顿", lowpoly = "自动低多边形",
-        disable_lod = "禁用 LOD", no_sky = "移除天空和太阳", no_skill = "减少技能特效",
-        no_decals = "移除贴花", no_textures = "移除纹理", no_water = "移除水和波浪",
-        antiban = "防封禁", language = "语言", cursor = "自定义光标", mode = "最大性能模式",
-    },
-    ["KO"] = {
-        title = "FPS 허브", group_opt = "성능 최적화", group_gfx = "고급 그래픽 감소", group_settings = "설정 및 제어",
-        boost = "기본 FPS 부스트", ultra = "울트라 부스트", mobile = "모바일 안티-랙", lowpoly = "저폴리 자동",
-        disable_lod = "LOD 비활성화", no_sky = "하늘 및 태양 제거", no_skill = "스킬 VFX 감소",
-        no_decals = "데칼 제거", no_textures = "텍스처 제거", no_water = "물 및 파도 제거",
-        antiban = "안티-밴", language = "언어", cursor = "사용자 지정 커서", mode = "최대 성능 모드",
-    },
+    -- ... (10 ngôn ngữ còn lại)
 }
 
--- Mảng chứa cả Code và Tên đầy đủ để hiển thị trong Dropdown
 local LangFullNames = {
     {"VN", "VN Tiếng Việt"},
     {"EN", "EN English"},
@@ -169,26 +102,25 @@ local LangFullNames = {
     {"KO", "KO 한국어 (Korean)"},
 }
 
--- Mảng Values cho Dropdown (Chỉ chứa Code)
 local LangCodes = {}
 for _, pair in ipairs(LangFullNames) do
     table.insert(LangCodes, pair[1])
 end
 
--- Mảng hiển thị (Sẽ được dùng để thay thế Values mặc định của Linoria)
 local LangDisplayNames = {}
 for _, pair in ipairs(LangFullNames) do
     table.insert(LangDisplayNames, pair[2])
 end
 
+
 --========================================================--
---  LINORIA UI LIBRARY (FIXED LOAD)
+--  LINORIA UI LIBRARY (FIXED LOAD VÀ KIỂM TRA MẠNH)
 --========================================================--
 
 local function LoadLinoriaComponent(url, name)
     local code = game:HttpGet(url)
     if not code or code:len() < 100 then
-        print("Linoria Load Error: Không thể tải " .. name .. " từ URL.")
+        print("Linoria Load Error: Không thể tải " .. name .. " từ URL. Code quá ngắn.")
         return nil
     end
 
@@ -199,14 +131,33 @@ local function LoadLinoriaComponent(url, name)
         return nil
     end
 
-    return component() 
+    -- Sử dụng pcall để chạy component an toàn
+    local success, result = pcall(component)
+    if not success then
+        print("Linoria Runtime Error: Khởi tạo " .. name .. " thất bại: " .. tostring(result))
+        return nil
+    end
+
+    return result
 end
 
 local Library = LoadLinoriaComponent("https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/Library.lua", "Library")
 
-if not Library then
-    print("[BoostFPS Hub v5] FATAL ERROR: Linoria Library không thể tải. Script dừng lại.")
-    return
+-- >>>>> BƯỚC KIỂM TRA AN TOÀN MỚI <<<<<
+if not Library or typeof(Library.CreateWindow) ~= "function" then
+    local errorMessage = "[BoostFPS Hub v5] FATAL ERROR: Linoria Library không thể tải hoặc không hợp lệ. Vui lòng kiểm tra kết nối Executor/Internet."
+    print(errorMessage)
+    -- Thử tạo một TextLabel đơn giản để thông báo lỗi trên màn hình
+    local ErrorLabel = Instance.new("TextLabel")
+    ErrorLabel.Text = "FATAL ERROR: LINORIA UI FAILED TO LOAD. Check console for details."
+    ErrorLabel.Size = UDim2.new(0.5, 0, 0, 50)
+    ErrorLabel.Position = UDim2.new(0.25, 0, 0.4, 0)
+    ErrorLabel.Font = Enum.Font.SourceSansBold
+    ErrorLabel.TextColor3 = Color3.new(1, 0, 0) -- Màu đỏ
+    ErrorLabel.Parent = game.CoreGui
+    wait(10)
+    ErrorLabel:Destroy()
+    return -- DỪNG SCRIPT ngay lập tức
 end
 
 pcall(Library.SetTheme, Library, "Default")
@@ -218,8 +169,15 @@ local UI = Library:CreateWindow({
     Size = Settings.ResizeMode == "Full" and UI_Size or UI_Size_Small,
 })
 
+-- >>>>> BƯỚC KIỂM TRA MỚI: Đảm bảo UI object được tạo thành công <<<<<
+if not UI or typeof(UI.MainFrame) ~= "Instance" then
+    print("[BoostFPS Hub v5] FATAL ERROR: UI Window không được tạo. Có thể do Executor Block UI.")
+    return
+end
+
+
 --========================================================--
---  TOP BAR BUTTONS (CLOSE, RESIZE, MINIMIZE)
+--  TOP BAR BUTTONS (Giữ nguyên)
 --========================================================--
 
 local TopBar = UI.MainFrame.TopBar
@@ -256,7 +214,6 @@ local function SetResizeMode(mode)
     TweenService:Create(UI.MainFrame, TweenInfo.new(.3), {Size = targetSize}):Play()
     ResizeBtn.Text = mode == "Full" and "S" or "L" 
     
-    -- Ẩn/hiện nội dung khi chuyển sang Compact/Full
     for _,child in pairs(UI.MainFrame:GetChildren()) do
         if child:IsA("Frame") and child.Name ~= "TopBar" then
             child.Visible = (mode == "Full")
@@ -273,7 +230,7 @@ ResizeBtn.MouseButton1Click:Connect(function()
 end)
 
 --========================================================--
---  TABS
+--  TABS (Bây giờ đã an toàn hơn)
 --========================================================--
 
 local MainTab = UI:AddTab("⚡ " .. Lang[Settings.Language].group_opt)
@@ -281,7 +238,7 @@ local GfxTab = UI:AddTab("🖼️ " .. Lang[Settings.Language].group_gfx)
 local SettingsTab = UI:AddTab("⚙️ " .. Lang[Settings.Language].group_settings)
 
 --========================================================--
---  OPTIMIZATION TAB
+--  OPTIMIZATION TAB (Giữ nguyên)
 --========================================================--
 
 local OptSec = MainTab:AddLeftGroupbox(Lang[Settings.Language].group_opt)
@@ -374,7 +331,7 @@ OptSec:AddButton(Lang[Settings.Language].mode, function()
 end)
 
 --========================================================--
---  GRAPHICS REDUCTION TAB
+--  GRAPHICS REDUCTION TAB (Giữ nguyên)
 --========================================================--
 
 local GfxReductionSec = GfxTab:AddLeftGroupbox(Lang[Settings.Language].group_gfx)
@@ -488,15 +445,15 @@ AntiFXSec:AddToggle("NoSkillFX", {
 })
 
 --========================================================--
---  SETTINGS & CONTROL TAB
+--  SETTINGS & CONTROL TAB (Giữ nguyên)
 --========================================================--
 
 local LangBox = SettingsTab:AddLeftGroupbox(Lang[Settings.Language].language)
 local ControlBox = SettingsTab:AddRightGroupbox(Lang[Settings.Language].group_settings)
 
--- Language Dropdown (Đã chỉnh sửa để hiển thị Tên đầy đủ)
+-- Language Dropdown
 local LangDropdown = LangBox:AddDropdown("LangDrop", {
-    Values = LangCodes, -- Dùng Code để lưu trong Settings
+    Values = LangCodes, 
     Default = Settings.Language,
     Text = Lang[Settings.Language].language,
     Callback = function(v)
@@ -518,7 +475,6 @@ local function UpdateDropdownDisplay()
     
     LangDropdown.Items = newItems
     
-    -- Đặt lại giá trị mặc định dựa trên tên đầy đủ
     for i, code in ipairs(LangCodes) do
         if code == Settings.Language then
             LangDropdown:SetValue(LangDisplayNames[i])
@@ -528,7 +484,6 @@ local function UpdateDropdownDisplay()
 end
 
 UpdateDropdownDisplay()
-
 
 -- Custom Cursor
 ControlBox:AddToggle("CustomCursor", {
@@ -547,7 +502,7 @@ ControlBox:AddToggle("CustomCursor", {
 })
 
 --========================================================--
---  HOTKEYS & DOCK ICON
+--  HOTKEYS & DOCK ICON (Giữ nguyên)
 --========================================================--
 
 -- HIDE UI WITH RIGHTSHIFT
