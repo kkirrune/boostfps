@@ -299,3 +299,5 @@ end)
 --========================================================--
 
 Library:Notify("BOOST FPS HUB LOADED ✔", 5)
+-- final print
+print("[BoostFPS Hub v3 - Linoria Dark] Loaded. Locale:", LOCALE, " VIP:", tostring(Config.IsVIP))
