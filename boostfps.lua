@@ -1,5 +1,6 @@
 --========================================================--
 -- BOOST FPS HUB V3 – Premium Linoria UI (FINAL FIX: REMOVED THEMES)
+-- ĐÃ LOẠI BỎ TÍNH NĂNG ĐỔI THEME GÂY LỖI
 --========================================================--
 
 --// Services
@@ -18,7 +19,7 @@ local SaveFile = "BoostFPSHub_Settings.json"
 
 local Settings = {
     Language = "EN",
-    -- Theme = "Blue", -- Đã xóa vì không còn dùng
+    -- Theme đã được loại bỏ
     BoostFPS = false,
     AutoLowPoly = false,
     MobileBoost = false,
@@ -60,7 +61,7 @@ local Lang = {
         ultra = "Ultra Boost",
         mobile = "Mobile Anti-Lag",
         lowpoly = "Auto Low Poly",
-        theme = "UI Theme", -- Vẫn giữ text để tránh lỗi, dù không dùng
+        theme = "UI Theme", 
         language = "Language",
         fpstitle = "FPS Monitor",
         mode = "FPS Turbo Mode",
@@ -93,7 +94,7 @@ local Lang = {
 }
 
 --========================================================--
---  LINORIA UI LIBRARY (BUILT-IN) - ĐÃ XÓA ADDONS
+--  LINORIA UI LIBRARY (BUILT-IN)
 --========================================================--
 
 -- Hàm tải an toàn
@@ -114,7 +115,7 @@ local function LoadLinoriaComponent(url, name)
     return component() 
 end
 
--- 1. Tải thư viện chính (BẮT BUỘC)
+-- Tải thư viện chính (BẮT BUỘC)
 local Library = LoadLinoriaComponent("https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/Library.lua", "Library")
 
 -- Kiểm tra nếu thư viện chính tải thất bại và dừng script
@@ -123,11 +124,9 @@ if not Library then
     return
 end
 
--- Đã XÓA ThemeManager và SaveManager.
--- Đã XÓA ApplyTheme.
-
--- Sử dụng theme mặc định (Default)
-Library:SetTheme("Default")
+-- Gọi hàm SetTheme mặc định (Default) một lần duy nhất
+-- Hàm này có sẵn trong Library chính mà không cần ThemeManager.lua
+pcall(Library.SetTheme, Library, "Default")
 
 local UI = Library:CreateWindow({
     Title = Lang[Settings.Language].title .. "  |  V3",
@@ -247,7 +246,7 @@ end)
 --  SETTINGS TAB
 --========================================================--
 
--- Chỉ còn lại LangBox
+-- Chỉ còn lại LangBox, ThemeBox đã bị xóa
 local LangBox = SettingsTab:AddLeftGroupbox(Lang[Settings.Language].language)
 
 LangBox:AddDropdown("LangDrop", {
@@ -260,8 +259,6 @@ LangBox:AddDropdown("LangDrop", {
         Library:Notify("Language will update next reopen.", 5)
     end
 })
-
--- ĐÃ XÓA TOÀN BỘ THEMEBOX GÂY LỖI
 
 --========================================================--
 --  MINIMIZE UI
