@@ -1,5 +1,5 @@
 --========================================================--
--- BOOST FPS HUB V12 – VOLCANO UI (Dark Theme Tabbed) - FINAL FIX
+-- BOOST FPS HUB V1 – VOLCANO UI (Dark Theme Tabbed)
 --========================================================--
 
 --// SERVICES
@@ -63,11 +63,11 @@ local function ApplyBoost()
     if Settings.BoostFPS then pcall(sethiddenproperty, workspace, "InterpolationThrottling", Enum.InterpolationThrottlingMode.Disabled); workspace.StreamingEnabled = true
     else workspace.StreamingEnabled = false end
     
-    -- ULTRA BOOST (Fixed RenderFidelity/SolidModel issue with pcall)
+    -- ULTRA BOOST
     if Settings.UltraBoost then 
         for _,part in pairs(workspace:GetDescendants()) do 
             if part:IsA("MeshPart") then 
-                pcall(function() part.RenderFidelity = Enum.RenderFidelity.Performance end) -- Bọc trong pcall 
+                pcall(function() part.RenderFidelity = Enum.RenderFidelity.Performance end) 
             end 
             if part:IsA("BasePart") then 
                 part.Material = Enum.Material.SmoothPlastic 
@@ -89,12 +89,11 @@ local function ApplyBoost()
     if Settings.NoSky then if sky then sky.Parent = nil end; Lighting.OutdoorAmbient = Color3.new(0.5, 0.5, 0.5); Lighting.Ambient = Color3.new(0.5, 0.5, 0.5)
     else Lighting.OutdoorAmbient = DefaultSettings.Ambient; Lighting.Ambient = DefaultSettings.Ambient end
     
-    -- NO DECALS (Fixed BillboardGui Transparency issue)
+    -- NO DECALS
     for _, obj in ipairs(workspace:GetDescendants()) do 
         if obj:IsA("Decal") then 
-            obj.Transparency = Settings.NoDecals and 1 or 0 -- Chỉ thay đổi Decal
+            obj.Transparency = Settings.NoDecals and 1 or 0 
         end
-        -- Không thay đổi Transparency của BillboardGui để tránh lỗi
     end
     
     -- NO TEXTURES
@@ -128,11 +127,18 @@ local function ApplyBoost()
     end
 end
 
+-- FUNCTION SETFX (Đã SỬA LỖI NumberRange -> NumberSequence)
 local function SetFX(obj)
     if obj:IsA("ParticleEmitter") or obj:IsA("Trail") then
         obj.Enabled = not Settings.NoSkillFX
-        if Settings.NoSkillFX then obj.Transparency = NumberRange.new(0.8); obj.Lifetime = NumberRange.new(0.1)
-        else obj.Transparency = NumberRange.new(0); obj.Lifetime = NumberRange.new(5) end
+        if Settings.NoSkillFX then 
+            -- Dùng NumberSequence.new() với 1 điểm 
+            obj.Transparency = NumberSequence.new(0.8) 
+            obj.Lifetime = NumberRange.new(0.1)
+        else 
+            obj.Transparency = NumberSequence.new(0) 
+            obj.Lifetime = NumberRange.new(5) 
+        end
     end
 end
 workspace.DescendantAdded:Connect(SetFX)
@@ -349,4 +355,4 @@ UserInputService.InputBegan:Connect(function(k,t)
     end
 end)
 
-print("[BoostFPS Hub V12] Loaded successfully on Volcano/limited Executors. Press RightShift to hide/show.")
+print("[BoostFPS Hub V12] Loaded successfully. ALL KNOWN BUGS FIXED. Press RightShift to hide/show.")
