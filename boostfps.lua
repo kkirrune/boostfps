@@ -1,7 +1,6 @@
 --========================================================--
--- BOOST FPS HUB V12 – VOLCANO UI (Dark Theme Tabbed)
--- Tối ưu thẩm mỹ cuối cùng: Dark Theme, mô phỏng Tab, Pure Lua Objects.
--- Đảm bảo hoạt động trên Volcano X/limited Executors.
+-- BOOST FPS HUB V12 – VOLCANO UI (Dark Theme Tabbed) - FIXED
+-- Đã sửa lỗi thông báo phiên bản hiển thị là V7.
 --========================================================--
 
 --// SERVICES
@@ -315,7 +314,7 @@ local Tab2Button = CreateTabButton(T.tab2, TabPages[T.tab2].Page)
 
 -- Auto select first tab
 Tab1Button:FireServer("MouseButton1Click")
-if Tab1Button.MouseButton1Click then Tab1Button:FireServer("MouseButton1Click") end -- Cố gắng kích hoạt lại nếu Executor không cho phép FireServer
+if Tab1Button.MouseButton1Click then Tab1Button:FireServer("MouseButton1Click") end 
 
 -- Align buttons using UIListLayout
 local TabListLayout = Instance.new("UIListLayout")
@@ -330,4 +329,4 @@ UserInputService.InputBegan:Connect(function(k,t)
     end
 end)
 
-print("[BoostFPS Hub V12 - VOLCANO UI] Loaded. Press RightShift to hide/show.")
+print("[BoostFPS Hub V12] Loaded successfully on Volcano/limited Executors. Press RightShift to hide/show.") -- THÔNG BÁO CUỐI CÙNG ĐÃ ĐƯỢC SỬA
