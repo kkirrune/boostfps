@@ -1,5 +1,5 @@
 --========================================================--
--- BOOST FPS HUB V3 – Premium Linoria UI (FINAL FIX: ROBUST LOAD)
+-- BOOST FPS HUB V3 – Premium Linoria UI (FINAL FIX: REMOVED THEMES)
 --========================================================--
 
 --// Services
@@ -18,7 +18,7 @@ local SaveFile = "BoostFPSHub_Settings.json"
 
 local Settings = {
     Language = "EN",
-    Theme = "Blue",
+    -- Theme = "Blue", -- Đã xóa vì không còn dùng
     BoostFPS = false,
     AutoLowPoly = false,
     MobileBoost = false,
@@ -49,10 +49,6 @@ end
 
 LoadSettings()
 
--- Hàm phụ trợ để áp dụng Theme đã lưu (cần được định nghĩa sau khi Library được tải)
-local ApplyTheme
-local ThemingEnabled = false -- Biến kiểm soát xem Theming có hoạt động không
-
 --========================================================--
 --  LANGUAGES
 --========================================================--
@@ -64,7 +60,7 @@ local Lang = {
         ultra = "Ultra Boost",
         mobile = "Mobile Anti-Lag",
         lowpoly = "Auto Low Poly",
-        theme = "UI Theme",
+        theme = "UI Theme", -- Vẫn giữ text để tránh lỗi, dù không dùng
         language = "Language",
         fpstitle = "FPS Monitor",
         mode = "FPS Turbo Mode",
@@ -97,7 +93,7 @@ local Lang = {
 }
 
 --========================================================--
---  LINORIA UI LIBRARY (BUILT-IN) - SỬA LỖI TẢI
+--  LINORIA UI LIBRARY (BUILT-IN) - ĐÃ XÓA ADDONS
 --========================================================--
 
 -- Hàm tải an toàn
@@ -127,31 +123,11 @@ if not Library then
     return
 end
 
--- 2. Tải ThemeManager (TÙY CHỌN)
-local ThemeManager = LoadLinoriaComponent("https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/Addons/ThemeManager.lua", "ThemeManager")
+-- Đã XÓA ThemeManager và SaveManager.
+-- Đã XÓA ApplyTheme.
 
-if ThemeManager then
-    ThemingEnabled = true -- Nếu tải thành công, bật Theming
-else
-    print("[BoostFPS Hub v3] Warning: ThemeManager failed to load. Tính năng đổi Theme sẽ bị tắt.")
-end
-
--- (Đã xóa SaveManager vì không cần thiết)
-
--- Hàm ApplyTheme giờ đã được BẢO VỆ
-ApplyTheme = function(themeName)
-    if not ThemingEnabled then return end -- KHÔNG LÀM GÌ CẢ NẾU THEME BỊ TẮT
-
-    -- pcall để an toàn tuyệt đối
-    pcall(function()
-        if themeName == "Blue" then Library:SetTheme("Default") end
-        if themeName == "Red" then Library:SetTheme("Discord") end
-        if themeName == "Pink" then Library:SetTheme("Fatality") end
-    end)
-end
-
--- Áp dụng theme đã lưu (An toàn)
-ApplyTheme(Settings.Theme) -- Dòng 135 cũ, giờ đã an toàn
+-- Sử dụng theme mặc định (Default)
+Library:SetTheme("Default")
 
 local UI = Library:CreateWindow({
     Title = Lang[Settings.Language].title .. "  |  V3",
@@ -179,11 +155,9 @@ BoostSec:AddToggle("BoostFPS", {
     Callback = function(v)
         Settings.BoostFPS = v
         SaveSettings()
-
         if v then
             pcall(sethiddenproperty, workspace, "InterpolationThrottling", Enum.InterpolationThrottlingMode.Disabled)
             workspace.StreamingEnabled = true
-
             for _,obj in pairs(workspace:GetDescendants()) do
                 if obj:IsA("ParticleEmitter") or obj:IsA("Trail") then
                     obj.Lifetime = NumberRange.new(0)
@@ -273,6 +247,7 @@ end)
 --  SETTINGS TAB
 --========================================================--
 
+-- Chỉ còn lại LangBox
 local LangBox = SettingsTab:AddLeftGroupbox(Lang[Settings.Language].language)
 
 LangBox:AddDropdown("LangDrop", {
@@ -286,24 +261,7 @@ LangBox:AddDropdown("LangDrop", {
     end
 })
 
-local ThemeBox = SettingsTab:AddRightGroupbox(Lang[Settings.Language].theme)
-
-local ThemeDropdown = ThemeBox:AddDropdown("ColorTheme", {
-    Values = {"Blue", "Red", "Pink"},
-    Default = Settings.Theme,
-    Text = Lang[Settings.Language].theme,
-    Callback = function(v)
-        Settings.Theme = v
-        SaveSettings()
-        ApplyTheme(v) -- Gọi hàm ApplyTheme đã được bảo vệ
-    end
-})
-
--- Tự động vô hiệu hóa Dropdown nếu Theming thất bại
-if not ThemingEnabled then
-    ThemeDropdown:SetEnabled(false) -- Vô hiệu hóa dropdown
-    ThemeBox:AddLabel("Theme disabled (Load Fail)"); -- Thêm nhãn báo lỗi
-end
+-- ĐÃ XÓA TOÀN BỘ THEMEBOX GÂY LỖI
 
 --========================================================--
 --  MINIMIZE UI
