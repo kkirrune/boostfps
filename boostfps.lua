@@ -1,331 +1,336 @@
 --[[ 
-    BoostFPSHub v6 — International Edition
-    Features: Loading Screen, Multi-Language, Auto Game Detect, Deep Boost
+    BoostFPSHub v1.4 — Final Stable
+    Author: Gemini AI Optimized
+    Language: Vietnamese
+    Features: Resizable UI, Watermark, Deep Boost, Game Support, Restore System
 ]]
 
--- === 1. LOADING SCREEN SYSTEM (Hệ thống màn hình chờ) ===
+-- === 1. LOADING SCREEN (MÀN HÌNH CHỜ) ===
 local function ShowLoadingScreen()
-    local Players = game:GetService("Players")
-    local TweenService = game:GetService("TweenService")
-    local CoreGui = game:GetService("CoreGui")
-    local LocalPlayer = Players.LocalPlayer
+    if game:GetService("CoreGui"):FindFirstChild("BoostFPS_Loading") then return end
     
-    -- Tạo ScreenGui an toàn
     local ScreenGui = Instance.new("ScreenGui")
     ScreenGui.Name = "BoostFPS_Loading"
-    -- Nếu dùng Executor xịn thì nhét vào CoreGui, không thì PlayerGui
-    pcall(function() ScreenGui.Parent = CoreGui end) 
-    if not ScreenGui.Parent then ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui") end
-    
-    -- Background đen
-    local MainFrame = Instance.new("Frame")
-    MainFrame.Size = UDim2.new(1, 0, 1, 0)
-    MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
-    MainFrame.BorderSizePixel = 0
-    MainFrame.Parent = ScreenGui
+    -- Cố gắng đưa vào CoreGui để hiển thị trên mọi layer
+    local parent = pcall(function() ScreenGui.Parent = game:GetService("CoreGui") end)
+    if not ScreenGui.Parent then ScreenGui.Parent = game:GetService("Players").LocalPlayer:WaitForChild("PlayerGui") end
+    ScreenGui.IgnoreGuiInset = true
 
-    -- Logo/Title Text
+    local Frame = Instance.new("Frame")
+    Frame.Size = UDim2.new(1,0,1,0)
+    Frame.BackgroundColor3 = Color3.fromRGB(10, 10, 15)
+    Frame.Parent = ScreenGui
+
+    local BarBase = Instance.new("Frame")
+    BarBase.Size = UDim2.new(0.4, 0, 0.02, 0)
+    BarBase.Position = UDim2.new(0.3, 0, 0.7, 0)
+    BarBase.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    BarBase.BorderSizePixel = 0
+    BarBase.Parent = Frame
+    
+    local BarProgress = Instance.new("Frame")
+    BarProgress.Size = UDim2.new(0,0,1,0)
+    BarProgress.BackgroundColor3 = Color3.fromRGB(0, 255, 128) -- Màu xanh ngọc
+    BarProgress.BorderSizePixel = 0
+    BarProgress.Parent = BarBase
+
     local Title = Instance.new("TextLabel")
-    Title.Text = "BOOST FPS HUB v6"
-    Title.Size = UDim2.new(1, 0, 0.2, 0)
-    Title.Position = UDim2.new(0, 0, 0.3, 0)
+    Title.Text = "BoostFPSHub v1.4"
+    Title.Size = UDim2.new(1,0,0.1,0)
+    Title.Position = UDim2.new(0,0,0.4,0)
     Title.BackgroundTransparency = 1
-    Title.TextColor3 = Color3.fromRGB(0, 255, 127) -- Màu xanh ngọc
-    Title.Font = Enum.Font.FredokaOne
-    Title.TextSize = 40
-    Title.Parent = MainFrame
-
-    -- Thanh Loading Bar (Background)
-    local BarBg = Instance.new("Frame")
-    BarBg.Size = UDim2.new(0.6, 0, 0.05, 0)
-    BarBg.Position = UDim2.new(0.2, 0, 0.5, 0)
-    BarBg.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    BarBg.BorderSizePixel = 0
-    BarBg.Parent = MainFrame
+    Title.TextColor3 = Color3.fromRGB(255,255,255)
+    Title.Font = Enum.Font.GothamBold
+    Title.TextSize = 30
+    Title.Parent = Frame
     
-    -- Corner cho đẹp
-    local UICorner = Instance.new("UICorner")
-    UICorner.CornerRadius = UDim.new(0, 8)
-    UICorner.Parent = BarBg
+    local SubTitle = Instance.new("TextLabel")
+    SubTitle.Text = "Loading Assets & Optimizing..."
+    SubTitle.Size = UDim2.new(1,0,0.05,0)
+    SubTitle.Position = UDim2.new(0,0,0.5,0)
+    SubTitle.BackgroundTransparency = 1
+    SubTitle.TextColor3 = Color3.fromRGB(150,150,150)
+    SubTitle.Font = Enum.Font.Gotham
+    SubTitle.TextSize = 14
+    SubTitle.Parent = Frame
 
-    -- Thanh Fill (Màu chạy)
-    local BarFill = Instance.new("Frame")
-    BarFill.Size = UDim2.new(0, 0, 1, 0) -- Bắt đầu từ 0
-    BarFill.BackgroundColor3 = Color3.fromRGB(0, 255, 127)
-    BarFill.BorderSizePixel = 0
-    BarFill.Parent = BarBg
-    local UICorner2 = Instance.new("UICorner")
-    UICorner2.CornerRadius = UDim.new(0, 8)
-    UICorner2.Parent = BarFill
-
-    -- Text %
-    local PercentTxt = Instance.new("TextLabel")
-    PercentTxt.Text = "Loading... 0%"
-    PercentTxt.Size = UDim2.new(1, 0, 2, 0)
-    PercentTxt.Position = UDim2.new(0, 0, 1.2, 0)
-    PercentTxt.BackgroundTransparency = 1
-    PercentTxt.TextColor3 = Color3.fromRGB(200, 200, 200)
-    PercentTxt.Font = Enum.Font.GothamBold
-    PercentTxt.TextSize = 18
-    PercentTxt.Parent = BarBg
-
-    -- Logic chạy %
-    for i = 1, 100 do
-        BarFill.Size = UDim2.new(i/100, 0, 1, 0)
-        PercentTxt.Text = "Loading Assets... " .. i .. "%"
-        
-        -- Chạy nhanh ở đoạn đầu, chậm ở đoạn cuối cho giống thật
-        if i < 70 then
-            task.wait(0.01)
-        else
-            task.wait(0.03)
-        end
-    end
+    local TweenService = game:GetService("TweenService")
+    TweenService:Create(BarProgress, TweenInfo.new(1.5, Enum.EasingStyle.Quad), {Size = UDim2.new(1,0,1,0)}):Play()
     
-    task.wait(0.5) -- Đợi 1 chút khi 100%
-    ScreenGui:Destroy() -- Xóa UI Loading
+    task.wait(1.8)
+    ScreenGui:Destroy()
 end
-
--- CHẠY MÀN HÌNH LOADING
 ShowLoadingScreen()
 
-
--- === 2. LANGUAGE SYSTEM (Hệ thống Ngôn Ngữ) ===
--- Chọn ngôn ngữ: "English", "Vietnamese", "Spanish", "Portuguese", "Thai"
-local SelectLanguage = "English" -- MẶC ĐỊNH LÀ TIẾNG ANH (Default)
-
-local Translations = {
-    ["English"] = {
-        Title = "Boost FPS Hub v6 - Ultimate",
-        Tab_Main = "Main Boost",
-        Tab_Game = "Game Boost",
-        Tab_GFX = "Deep Graphics",
-        Tab_Settings = "Settings",
-        
-        -- Main
-        Grp_System = "System Boost",
-        Btn_BoostFPS = "Boost FPS (Basic)",
-        Btn_Mobile = "Mobile Mode (Low GFX)",
-        Btn_AntiLag = "Anti-Lag (Auto Clear RAM)",
-        Btn_CleanRAM = "Clean RAM Now",
-        
-        -- Game
-        Grp_Universal = "Universal Game",
-        Lbl_NoGame = "No specific game detected.",
-        
-        -- GFX
-        Grp_Deep = "Deep Reduction",
-        Btn_NoSky = "Remove Sky",
-        Btn_FullBright = "Fullbright (Max Light)",
-        Btn_SmoothWalls = "Smooth Walls (Plastic)",
-        Btn_Invisible = "Invisible Objects (Wallhack-like)",
-        
-        -- Settings
-        Grp_Config = "Config Manager",
-        Lbl_Lang = "Language: English",
-        Btn_Unload = "Unload Script"
-    },
-    ["Vietnamese"] = {
-        Title = "Boost FPS Hub v6 - Siêu Cấp",
-        Tab_Main = "Tăng Tốc Chính",
-        Tab_Game = "Game Cụ Thể",
-        Tab_GFX = "Đồ Họa Sâu",
-        Tab_Settings = "Cài Đặt",
-        
-        Grp_System = "Hệ Thống",
-        Btn_BoostFPS = "Tăng FPS (Cơ bản)",
-        Btn_Mobile = "Chế độ Mobile (Siêu nhẹ)",
-        Btn_AntiLag = "Anti-Lag (Tự dọn RAM)",
-        Btn_CleanRAM = "Dọn RAM Ngay",
-        
-        Grp_Universal = "Game Phổ Quát",
-        Lbl_NoGame = "Không tìm thấy cấu hình game riêng.",
-        
-        Grp_Deep = "Giảm Đồ Họa Sâu",
-        Btn_NoSky = "Xóa Bầu Trời",
-        Btn_FullBright = "Sáng Tối Đa",
-        Btn_SmoothWalls = "Tường Mịn (Nhựa)",
-        Btn_Invisible = "Tàng Hình Vật Thể",
-        
-        Grp_Config = "Quản Lý Cấu Hình",
-        Lbl_Lang = "Ngôn ngữ: Tiếng Việt",
-        Btn_Unload = "Tắt Script"
-    },
-    ["Spanish"] = {
-        Title = "Boost FPS Hub v6 - Ultimo",
-        Tab_Main = "Impulso Principal",
-        Tab_Game = "Juego Específico",
-        Tab_GFX = "Gráficos Profundos",
-        Tab_Settings = "Ajustes",
-        Grp_System = "Sistema",
-        Btn_BoostFPS = "Aumentar FPS",
-        Btn_Mobile = "Modo Móvil",
-        Btn_AntiLag = "Anti-Lag (RAM)",
-        Btn_CleanRAM = "Limpiar RAM",
-        Grp_Universal = "Juego Universal",
-        Lbl_NoGame = "Juego no detectado.",
-        Grp_Deep = "Reducción Profunda",
-        Btn_NoSky = "Eliminar Cielo",
-        Btn_FullBright = "Brillo Máximo",
-        Btn_SmoothWalls = "Paredes Lisas",
-        Btn_Invisible = "Objetos Invisibles",
-        Grp_Config = "Configuración",
-        Lbl_Lang = "Idioma: Español",
-        Btn_Unload = "Descargar Script"
-    },
-    -- Thêm các ngôn ngữ khác nếu cần
-}
-
--- Hàm lấy text theo ngôn ngữ
-local function T(key)
-    if Translations[SelectLanguage] and Translations[SelectLanguage][key] then
-        return Translations[SelectLanguage][key]
-    end
-    return Translations["English"][key] or key -- Fallback về tiếng Anh
-end
-
--- === 3. CORE SCRIPT (Giữ nguyên tính năng cũ nhưng thay Text) ===
+-- === 2. KHỞI TẠO & DỊCH VỤ ===
 if not game:IsLoaded() then game.Loaded:Wait() end
 
--- Linoria Lib
+-- Load Library
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/Library.lua"))()
 local ThemeManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/addons/ThemeManager.lua"))()
 local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/addons/SaveManager.lua"))()
 
-local Window = Library:CreateWindow({
-    Title = T("Title"),
-    Center = true,
-    AutoShow = true,
-    TabPadding = 8
-})
-
-local Tabs = {
-    Main = Window:AddTab(T("Tab_Main")),
-    Game = Window:AddTab(T("Tab_Game")),
-    Graphics = Window:AddTab(T("Tab_GFX")),
-    Settings = Window:AddTab(T("Tab_Settings"))
-}
-
--- Services
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
 local Lighting = game:GetService("Lighting")
 local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 local LocalPlayer = Players.LocalPlayer
 
--- Detect Game
-local PlaceID = game.PlaceId
-local GameName = "Universal"
-local GameIDs = {
-    BloxFruit = {2753915549, 4442272183, 7449423635},
-    TSB = {10449761463},
-    Doors = {6516141723, 6839171747},
-    Evade = {9872472334},
-    Fisch = {16732694052},
-    Rivals = {17625359962},
-    PixelBlade = {6445980753},
-    Brainrot = {15561560423}
+-- === 3. QUẢN LÝ TRẠNG THÁI (RESTORE SYSTEM) ===
+local OriginalState = {
+    Lighting = {
+        GlobalShadows = Lighting.GlobalShadows,
+        FogEnd = Lighting.FogEnd,
+        Brightness = Lighting.Brightness,
+        Ambient = Lighting.Ambient,
+        OutdoorAmbient = Lighting.OutdoorAmbient,
+        Technology = Lighting.Technology
+    },
+    Global = {
+        QualityLevel = settings().Rendering.QualityLevel
+    }
 }
 
-local function checkGame()
-    for name, ids in pairs(GameIDs) do
-        for _, id in pairs(ids) do
-            if PlaceID == id then GameName = name return end
+local function SafeCall(func)
+    local success, result = pcall(func)
+    if not success then warn("[BoostFPSHub Error]: " .. tostring(result)) end
+end
+
+local function RestoreDefaults()
+    SafeCall(function()
+        Lighting.GlobalShadows = OriginalState.Lighting.GlobalShadows
+        Lighting.FogEnd = OriginalState.Lighting.FogEnd
+        Lighting.Brightness = OriginalState.Lighting.Brightness
+        Lighting.Ambient = OriginalState.Lighting.Ambient
+        Lighting.OutdoorAmbient = OriginalState.Lighting.OutdoorAmbient
+        settings().Rendering.QualityLevel = OriginalState.Global.QualityLevel
+        
+        -- Khôi phục vật thể
+        for _, v in pairs(Workspace:GetDescendants()) do
+            if v:IsA("BasePart") then v.Material = Enum.Material.Plastic v.Transparency = 0 end
+            if v:IsA("Decal") or v:IsA("Texture") then v.Transparency = 0 end
         end
-    end
-    local lowerName = game.Name:lower()
-    if lowerName:find("blox fruit") then GameName = "BloxFruit"
-    elseif lowerName:find("battlegrounds") then GameName = "TSB"
-    elseif lowerName:find("doors") then GameName = "Doors"
-    elseif lowerName:find("evade") then GameName = "Evade"
-    elseif lowerName:find("fisch") then GameName = "Fisch"
-    elseif lowerName:find("rivals") then GameName = "Rivals"
-    elseif lowerName:find("pixel") then GameName = "PixelBlade"
-    end
-end
-checkGame()
-
--- Safe Call
-local function safeCall(func)
-    local ok, err = pcall(func)
+        
+        Library:Notify("Đã khôi phục cài đặt gốc!", 5)
+    end)
 end
 
-local function runAntiCrash()
-    if setfpscap then setfpscap(60) end
-    for _, v in pairs(Workspace:GetDescendants()) do
-        if v.Name == "Debris" or v.Name == "Bullet" then v:Destroy() end
+-- === 4. GIAO DIỆN CHÍNH ===
+
+local Window = Library:CreateWindow({
+    Title = "BoostFPSHub v1.4 | Final Stable",
+    Center = true,
+    AutoShow = true,
+    TabPadding = 8,
+    MenuFadeTime = 0.2
+})
+
+-- Cài đặt Watermark (Góc màn hình)
+Library:SetWatermark("BoostFPSHub v1.4 | Running")
+Library:SetWatermarkVisibility(true)
+
+-- Cập nhật FPS cho Watermark
+task.spawn(function()
+    while true do
+        task.wait(1)
+        local fps = math.floor(1 / RunService.RenderStepped:Wait())
+        Library:SetWatermark("BoostFPSHub v1.4 | FPS: " .. fps .. " | Ping: " .. math.floor(game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:GetValue()) .. "ms")
     end
-    if checkcaller then for i=1,3 do collectgarbage("collect") end end
-end
+end)
 
--- === UI BUILD ===
+local Tabs = {
+    Main = Window:AddTab("Chính (Main)"),
+    Game = Window:AddTab("Game Boost"),
+    Extreme = Window:AddTab("Siêu Cấp (Extreme)"),
+    Misc = Window:AddTab("Tiện Ích"),
+    Settings = Window:AddTab("Cài Đặt"),
+}
 
--- 1. Main Tab
-local MainGroup = Tabs.Main:AddLeftGroupbox(T("Grp_System"))
-MainGroup:AddToggle("BoostFPS", {Text = T("Btn_BoostFPS"), Default = true, Callback = function(v)
-    if v then 
-        settings().Rendering.QualityLevel = 1 
-        workspace.StreamingEnabled = true
+-- >> TAB 1: MAIN BOOST
+local MainGroup = Tabs.Main:AddLeftGroupbox("Tối Ưu Cơ Bản")
+
+MainGroup:AddToggle("BoostFPS", {Text = "Boost FPS (Khuyên Dùng)", Default = true, Callback = function(v)
+    if v then
+        SafeCall(function()
+            settings().Rendering.QualityLevel = 1
+            settings().Rendering.MeshPartDetailLevel = Enum.MeshPartDetailLevel.Level04
+            workspace.StreamingEnabled = true
+        end)
+    else
+        settings().Rendering.QualityLevel = OriginalState.Global.QualityLevel
     end
 end})
-MainGroup:AddToggle("MobileMode", {Text = T("Btn_Mobile"), Default = false, Callback = function(v)
+
+MainGroup:AddToggle("MobileMode", {Text = "Chế Độ Mobile (Giảm Bóng)", Default = false, Callback = function(v)
     Lighting.GlobalShadows = not v
-    if v then Lighting.FogEnd = 9e9 end
+    if v then Lighting.FogEnd = 9e9 else Lighting.FogEnd = OriginalState.Lighting.FogEnd end
 end})
-MainGroup:AddToggle("AntiLag", {Text = T("Btn_AntiLag"), Default = false, Callback = function(v)
+
+MainGroup:AddToggle("FullBright", {Text = "Sáng Tối Đa (FullBright)", Default = false, Callback = function(v)
+    if v then
+        Lighting.Ambient = Color3.new(1,1,1)
+        Lighting.ClockTime = 14
+    else
+        Lighting.Ambient = OriginalState.Lighting.Ambient
+        Lighting.ClockTime = 12
+    end
+end})
+
+local OptGroup = Tabs.Main:AddRightGroupbox("Tối Ưu CPU & RAM")
+
+OptGroup:AddToggle("CPUThrottle", {Text = "Tiết Kiệm CPU (Khi ẩn tab)", Default = true, Callback = function(v)
+    -- Logic giảm FPS khi tab ra ngoài
+    local focused = true
+    UserInputService.WindowFocused:Connect(function() 
+        focused = true 
+        if v then RunService:SetFpsCap(999) end 
+    end)
+    UserInputService.WindowFocusReleased:Connect(function() 
+        focused = false 
+        if v then RunService:SetFpsCap(5) end 
+    end)
+end})
+
+OptGroup:AddToggle("AutoClearRAM", {Text = "Dọn RAM Tự Động (15s)", Default = true, Callback = function(v)
     if v then
         task.spawn(function()
-            while v do runAntiCrash() task.wait(10) end
+            while v do
+                task.wait(15)
+                SafeCall(function()
+                    for _, obj in pairs(Workspace:GetDescendants()) do
+                        if obj.Name == "Debris" or obj.Name == "Bullet" or obj.Name == "Effect" then obj:Destroy() end
+                    end
+                    if checkcaller then for i=1,3 do collectgarbage("collect") end end
+                end)
+            end
         end)
     end
 end})
-MainGroup:AddButton(T("Btn_CleanRAM"), {Func = runAntiCrash})
 
--- 2. Game Tab
-local GameGroup = Tabs.Game:AddLeftGroupbox("Game: " .. GameName)
-if GameName == "BloxFruit" then
-    GameGroup:AddToggle("BF1", {Text = "No Skill Effects", Default = false, Callback = function(v) end}) -- Add logic
-    GameGroup:AddToggle("BF2", {Text = "Fast Mode (No Sea)", Default = false, Callback = function(v) 
-        local s = Workspace:FindFirstChild("Sea") if s then s.Transparency = v and 1 or 0 end
+-- >> TAB 2: GAME BOOST
+local GameGroup = Tabs.Game:AddLeftGroupbox("Game Hiện Tại")
+
+local function DetectGame()
+    local id = game.PlaceId
+    if id == 2753915549 or id == 4442272183 or id == 7449423635 then return "BloxFruit"
+    elseif id == 10449761463 then return "TSB"
+    elseif id == 6516141723 then return "Doors"
+    else return "Universal" end
+end
+local CurrentGame = DetectGame()
+
+GameGroup:AddLabel("Đang chơi: " .. CurrentGame)
+
+if CurrentGame == "BloxFruit" then
+    GameGroup:AddToggle("BF_NoSkill", {Text = "Tắt Skill Effects", Default = false, Callback = function(v)
+        task.spawn(function()
+             for _, p in pairs(game.ReplicatedStorage:GetDescendants()) do
+                 if p:IsA("ParticleEmitter") then p.Enabled = not v end
+             end
+        end)
     end})
-elseif GameName == "Doors" then
-    GameGroup:AddToggle("D1", {Text = "No Lights", Default = false, Callback = function(v) end})
-    GameGroup:AddToggle("D2", {Text = "Remove Decor", Default = false, Callback = function(v) end})
+    GameGroup:AddToggle("BF_FastMode", {Text = "Xóa Biển & Đảo Xa", Default = false, Callback = function(v)
+        local sea = Workspace:FindFirstChild("Sea")
+        if sea then sea.Transparency = v and 1 or 0 end
+    end})
+elseif CurrentGame == "Doors" then
+    GameGroup:AddToggle("Doors_NoLight", {Text = "Xóa Ánh Sáng & Bóng", Default = false, Callback = function(v)
+        for _, l in pairs(Workspace:GetDescendants()) do if l:IsA("Light") then l.Enabled = not v end end
+    end})
+elseif CurrentGame == "TSB" then
+    GameGroup:AddToggle("TSB_Map", {Text = "Low Poly Map", Default = false, Callback = function(v)
+         for _, p in pairs(Workspace.Map:GetDescendants()) do
+             if p:IsA("BasePart") then p.Material = v and Enum.Material.SmoothPlastic or Enum.Material.Plastic end
+         end
+    end})
 else
-    GameGroup:AddLabel(T("Lbl_NoGame"))
-    GameGroup:AddLabel("Mode: " .. GameName)
+    GameGroup:AddLabel("Không có chức năng riêng cho game này.")
+    GameGroup:AddLabel("Vui lòng dùng Tab 'Chính' hoặc 'Siêu Cấp'.")
 end
 
--- 3. Graphics Tab
-local GFXGroup = Tabs.Graphics:AddLeftGroupbox(T("Grp_Deep"))
-GFXGroup:AddToggle("NoSky", {Text = T("Btn_NoSky"), Default = false, Callback = function(v)
-    if v then for _,o in pairs(Lighting:GetChildren()) do if o:IsA("Sky") then o.Parent=nil end end end
-end})
-GFXGroup:AddToggle("FullBright", {Text = T("Btn_FullBright"), Default = false, Callback = function(v)
-    if v then Lighting.Brightness=2 Lighting.ClockTime=14 Lighting.GlobalShadows=false else Lighting.Brightness=1 end
-end})
-GFXGroup:AddToggle("SmoothWalls", {Text = T("Btn_SmoothWalls"), Default = false, Callback = function(v)
-    for _,p in pairs(Workspace:GetDescendants()) do if p:IsA("BasePart") then p.Material = v and Enum.Material.SmoothPlastic or Enum.Material.Plastic end end
-end})
+-- >> TAB 3: EXTREME (ĐỒ HỌA SÂU)
+local ExtremeGroup = Tabs.Extreme:AddLeftGroupbox("Cảnh Báo: Làm Xấu Game")
 
--- 4. Settings Tab
-local SetGroup = Tabs.Settings:AddLeftGroupbox(T("Grp_Config"))
-SetGroup:AddLabel(T("Lbl_Lang"))
-SetGroup:AddDropdown("LangSelect", {
-    Values = {"English", "Vietnamese", "Spanish"},
-    Default = 1,
-    Multi = false,
-    Text = "Select Language (Restart Script)",
-    Tooltip = "Select language and re-execute script",
-    Callback = function(v)
-        -- Chức năng này chỉ mang tính chất lưu config, cần re-execute để đổi ngôn ngữ hoàn toàn
-        SelectLanguage = v
+ExtremeGroup:AddToggle("Wireframe", {Text = "Chế Độ Khung Dây (Wireframe)", Default = false, Callback = function(v)
+    for _, p in pairs(Workspace:GetDescendants()) do
+        if p:IsA("BasePart") then
+            p.Material = v and Enum.Material.ForceField or Enum.Material.Plastic
+            if v then p.Transparency = 0.5 else p.Transparency = 0 end
+        end
     end
-})
-SetGroup:AddButton(T("Btn_Unload"), {Func = function() Window:Unload() end})
+end})
 
+ExtremeGroup:AddToggle("NoRender", {Text = "Tắt Render 3D (Treo máy)", Default = false, Callback = function(v)
+    RunService:Set3dRenderingEnabled(not v)
+end})
+
+ExtremeGroup:AddToggle("Invisible", {Text = "Tàng Hình Vật Thể (Xuyên Tường)", Default = false, Callback = function(v)
+    for _, p in pairs(Workspace:GetDescendants()) do
+        if p:IsA("BasePart") and not p.Parent:IsA("Model") then
+            p.Transparency = v and 1 or 0
+        end
+    end
+end})
+
+ExtremeGroup:AddButton("Xóa Texture Vĩnh Viễn", {Func = function()
+    for _, t in pairs(Workspace:GetDescendants()) do
+        if t:IsA("Texture") or t:IsA("Decal") then t:Destroy() end
+    end
+    Library:Notify("Đã xóa sạch Texture!", 3)
+end})
+
+-- >> TAB 4: TIỆN ÍCH (MISC)
+local MiscGroup = Tabs.Misc:AddLeftGroupbox("Server & AFK")
+
+MiscGroup:AddToggle("AntiAFK", {Text = "Anti-AFK (Chống kick)", Default = true, Callback = function(v)
+    if v then
+        local vu = game:GetService("VirtualUser")
+        LocalPlayer.Idled:Connect(function()
+            vu:CaptureController()
+            vu:ClickButton2(Vector2.new())
+        end)
+    end
+end})
+
+MiscGroup:AddButton("Rejoin Server (Vào lại)", {Func = function()
+    game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer)
+end})
+
+MiscGroup:AddButton("Server Hop (Đổi Server)", {Func = function()
+    Library:Notify("Đang tìm server khác...", 3)
+    local Http = game:GetService("HttpService")
+    local TPS = game:GetService("TeleportService")
+    local Api = "https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100"
+    local function ListServers(cursor)
+        local Raw = game:HttpGet(Api .. ((cursor and "&cursor="..cursor) or ""))
+        return Http:JSONDecode(Raw)
+    end
+    local Server, Next; repeat
+        local Servers = ListServers(Next)
+        Server = Servers.data[math.random(1, #Servers.data)]
+        Next = Servers.nextPageCursor
+    until Server.playing < Server.maxPlayers and Server.id ~= game.JobId
+    TPS:TeleportToPlaceInstance(game.PlaceId, Server.id, LocalPlayer)
+end})
+
+-- >> TAB 5: SETTINGS (CÀI ĐẶT)
+local SetGroup = Tabs.Settings:AddLeftGroupbox("Hệ Thống")
+
+SetGroup:AddButton("KHÔI PHỤC MẶC ĐỊNH (Restore)", {Func = RestoreDefaults})
+SetGroup:AddButton("Tắt Script (Unload)", {Func = function() Window:Unload() end})
+
+-- Theme Manager
+local ThemeGroup = Tabs.Settings:AddRightGroupbox("Giao Diện (Themes)")
+ThemeManager:SetLibrary(Library)
+ThemeManager:SetFolder("BoostFPSHub_v1.4")
+ThemeManager:ApplyToTab(ThemeGroup)
+
+-- Save Manager
+local ConfigGroup = Tabs.Settings:AddRightGroupbox("Cấu Hình (Config)")
 SaveManager:SetLibrary(Library)
-SaveManager:SetFolder("BoostFPSHub_v6")
-SaveManager:BuildConfigSection(SetGroup)
+SaveManager:SetFolder("BoostFPSHub_v1.4")
+SaveManager:BuildConfigSection(ConfigGroup)
 
-Library:Notify("BoostFPSHub v6 Loaded!", 5)
+-- Init
+Library:Notify("BoostFPSHub v1.4 Loaded!", 5)
