@@ -1,6 +1,21 @@
--- BoostFPSHub v2.3 — Tối Ưu FPS Roblox
+-- BoostFPSHub v1.2.4 — Tối Ưu FPS Roblox
 -- Language: Vietnamese
--- Features: Ẩn UI, thu nhỏ, tối ưu đa game, BF local load
+
+-- === 0. KHỞI TẠO BIẾN TOÀN CỤC ===
+getgenv().BoostFPS = {
+    RemoveParticles = false,
+    AutoClean = false,
+    BF_NoSkillEffects = false,
+    BF_NoFruitEffects = false,
+    BF_ReducePlayers = false,
+    BF_LocalLoad = false,
+    BR_NoGlow = false,
+    BR_ReduceCharacters = false,
+    TSB_NoSkillEffects = false,
+    TSB_ReduceAura = false,
+    TSB_NoTrails = false,
+    TSB_ReducePlayers = false
+}
 
 -- === 1. LOADING SCREEN ===
 local function ShowLoadingScreen()
@@ -95,6 +110,7 @@ local Tabs = {
 
 -- === 4. TAB MAIN ===
 local MainLeft = Tabs.Main:AddLeftGroupbox("Tối Ưu FPS")
+
 MainLeft:AddToggle("UltraBoost", {
     Text = "Ultra Boost FPS",
     Default = true,
@@ -117,9 +133,9 @@ MainLeft:AddToggle("RemoveParticles", {
     Text = "Xóa Hiệu Ứng",
     Default = true,
     Callback = function(value)
-        getgenv().RemoveParticles = value
+        getgenv().BoostFPS.RemoveParticles = value
         task.spawn(function()
-            while getgenv().RemoveParticles do
+            while getgenv().BoostFPS.RemoveParticles do
                 for _, obj in pairs(Workspace:GetDescendants()) do
                     if obj:IsA("ParticleEmitter") or obj:IsA("Trail") then
                         obj.Enabled = false
@@ -140,13 +156,14 @@ MainLeft:AddToggle("NoShadows", {
 })
 
 local MainRight = Tabs.Main:AddRightGroupbox("Hệ Thống")
+
 MainRight:AddToggle("AutoClean", {
     Text = "Tự Động Dọn RAM",
     Default = true,
     Callback = function(value)
-        getgenv().AutoClean = value
+        getgenv().BoostFPS.AutoClean = value
         task.spawn(function()
-            while getgenv().AutoClean do
+            while getgenv().BoostFPS.AutoClean do
                 task.wait(30)
                 collectgarbage("collect")
             end
@@ -165,34 +182,36 @@ MainRight:AddToggle("CPUOptimize", {
             UserInputService.WindowFocusReleased:Connect(function()
                 RunService:SetFpsCap(30)
             end)
+        else
+            RunService:SetFpsCap(999)
         end
     end
 })
 
--- === 5. TAB BLOX FRUIT NÂNG CAO ===
+-- === 5. TAB BLOX FRUIT ===
 local BFLeft = Tabs.BloxFruit:AddLeftGroupbox("Tối Ưu Blox Fruit")
 local BFRight = Tabs.BloxFruit:AddRightGroupbox("Tối Ưu Map")
 
--- Tắt hiệu ứng skill
 BFLeft:AddToggle("BF_NoSkillEffects", {
     Text = "Tắt Hiệu Ứng Skill",
     Default = false,
     Callback = function(value)
-        getgenv().BF_NoSkillEffects = value
+        getgenv().BoostFPS.BF_NoSkillEffects = value
         task.spawn(function()
-            while getgenv().BF_NoSkillEffects do
-                for _, effect in pairs(game:GetService("ReplicatedStorage").Effect.Container:GetDescendants()) do
-                    if effect:IsA("ParticleEmitter") then
-                        effect.Enabled = false
+            while getgenv().BoostFPS.BF_NoSkillEffects do
+                local success = pcall(function()
+                    for _, effect in pairs(game:GetService("ReplicatedStorage").Effect.Container:GetDescendants()) do
+                        if effect:IsA("ParticleEmitter") then
+                            effect.Enabled = false
+                        end
                     end
-                end
+                end)
                 task.wait(1)
             end
         end)
     end
 })
 
--- Giảm nước
 BFLeft:AddToggle("BF_ReduceWater", {
     Text = "Giảm Hiệu Ứng Nước",
     Default = false,
@@ -207,7 +226,6 @@ BFLeft:AddToggle("BF_ReduceWater", {
     end
 })
 
--- Tối ưu đảo (cơ bản)
 BFRight:AddToggle("BF_OptimizeIslands", {
     Text = "Tối Ưu Đảo",
     Default = false,
@@ -222,14 +240,13 @@ BFRight:AddToggle("BF_OptimizeIslands", {
     end
 })
 
--- Tắt hiệu ứng trái cây
 BFRight:AddToggle("BF_NoFruitEffects", {
     Text = "Tắt Hiệu Ứng Trái",
     Default = false,
     Callback = function(value)
-        getgenv().BF_NoFruitEffects = value
+        getgenv().BoostFPS.BF_NoFruitEffects = value
         task.spawn(function()
-            while getgenv().BF_NoFruitEffects do
+            while getgenv().BoostFPS.BF_NoFruitEffects do
                 for _, fruit in pairs(Workspace:GetChildren()) do
                     if fruit:FindFirstChild("Handle") then
                         for _, effect in pairs(fruit.Handle:GetDescendants()) do
@@ -245,14 +262,13 @@ BFRight:AddToggle("BF_NoFruitEffects", {
     end
 })
 
--- Giảm hiệu ứng người chơi
 BFRight:AddToggle("BF_ReducePlayers", {
     Text = "Giảm Hiệu Ứng Người Chơi",
     Default = false,
     Callback = function(value)
-        getgenv().BF_ReducePlayers = value
+        getgenv().BoostFPS.BF_ReducePlayers = value
         task.spawn(function()
-            while getgenv().BF_ReducePlayers do
+            while getgenv().BoostFPS.BF_ReducePlayers do
                 for _, player in pairs(Players:GetPlayers()) do
                     if player.Character then
                         for _, part in pairs(player.Character:GetDescendants()) do
@@ -268,22 +284,23 @@ BFRight:AddToggle("BF_ReducePlayers", {
     end
 })
 
--- BF Local Loading / Culling nâng cao
 BFRight:AddToggle("BF_LocalLoad", {
     Text = "Load Xung Quanh Người Chơi",
     Default = false,
     Callback = function(value)
-        getgenv().BF_LocalLoad = value
+        getgenv().BoostFPS.BF_LocalLoad = value
         if value then
             task.spawn(function()
                 local player = Players.LocalPlayer
-                local radius = 300 -- bán kính load đảo
-                while getgenv().BF_LocalLoad do
+                local radius = 300
+                while getgenv().BoostFPS.BF_LocalLoad do
                     if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
                         local hrp = player.Character.HumanoidRootPart.Position
                         for _, island in pairs(Workspace:GetChildren()) do
                             if island:IsA("Model") and island:FindFirstChild("Terrain") then
-                                local distance = (island:GetModelCFrame().p - hrp).Magnitude
+                                -- SỬA LỖI: GetModelCFrame() -> GetPivot()
+                                local islandPos = island:GetPivot().Position
+                                local distance = (islandPos - hrp).Magnitude
                                 if distance <= radius then
                                     if not island.Parent then island.Parent = Workspace end
                                     if distance > 150 then
@@ -311,6 +328,7 @@ BFRight:AddToggle("BF_LocalLoad", {
                 end
             end)
         else
+            -- Khôi phục tất cả đảo
             for _, island in pairs(Workspace:GetChildren()) do
                 if island:IsA("Model") and island:FindFirstChild("Terrain") then
                     island.Parent = Workspace
@@ -326,223 +344,7 @@ BFRight:AddToggle("BF_LocalLoad", {
     end
 })
 
--- === 6. TAB STEAL A BRAINROT ===
-local BRLeft = Tabs.Brainrot:AddLeftGroupbox("Tối Ưu Nhân Vật")
-local BRRight = Tabs.Brainrot:AddRightGroupbox("Tối Ưu Môi Trường")
-
-BRLeft:AddToggle("BR_NoGlow", {
-    Text = "Tắt Hiệu Ứng Phát Sáng",
-    Default = false,
-    Callback = function(value)
-        getgenv().BR_NoGlow = value
-        task.spawn(function()
-            while getgenv().BR_NoGlow do
-                for _, obj in pairs(Workspace:GetDescendants()) do
-                    if obj:IsA("ParticleEmitter") and (obj.Name == "Glow" or obj.Name == "Aura") then
-                        obj.Enabled = false
-                    end
-                end
-                task.wait(1)
-            end
-        end)
-    end
-})
-
-BRLeft:AddToggle("BR_ReduceCharacters", {
-    Text = "Giảm Hiệu Ứng Nhân Vật",
-    Default = false,
-    Callback = function(value)
-        getgenv().BR_ReduceCharacters = value
-        task.spawn(function()
-            while getgenv().BR_ReduceCharacters do
-                for _, char in pairs(Workspace:GetChildren()) do
-                    if char:FindFirstChild("Humanoid") then
-                        for _, part in pairs(char:GetDescendants()) do
-                            if part:IsA("ParticleEmitter") or part:IsA("Trail") then
-                                part.Enabled = false
-                            end
-                        end
-                    end
-                end
-                task.wait(2)
-            end
-        end)
-    end
-})
-
-BRLeft:AddToggle("BR_NoWeaponEffects", {
-    Text = "Tắt Hiệu Ứng Vũ Khí",
-    Default = false,
-    Callback = function(value)
-        if value then
-            for _, tool in pairs(Workspace:GetDescendants()) do
-                if tool:IsA("Tool") then
-                    for _, effect in pairs(tool:GetDescendants()) do
-                        if effect:IsA("ParticleEmitter") then
-                            effect.Enabled = false
-                        end
-                    end
-                end
-            end
-        end
-    end
-})
-
-BRRight:AddToggle("BR_OptimizeMap", {
-    Text = "Tối Ưu Bản Đồ",
-    Default = false,
-    Callback = function(value)
-        if value then
-            for _, part in pairs(Workspace:GetDescendants()) do
-                if part:IsA("Part") and part.Material == Enum.Material.Neon then
-                    part.Material = Enum.Material.Plastic
-                end
-            end
-        end
-    end
-})
-
-BRRight:AddToggle("BR_ReduceLighting", {
-    Text = "Giảm Ánh Sáng",
-    Default = false,
-    Callback = function(value)
-        if value then
-            Lighting.Brightness = 1
-            Lighting.Ambient = Color3.new(0.3, 0.3, 0.3)
-        else
-            Lighting.Brightness = OriginalState.Lighting.Brightness
-            Lighting.Ambient = Color3.new(1, 1, 1)
-        end
-    end
-})
-
-BRRight:AddToggle("BR_NoAmbientSound", {
-    Text = "Tắt Âm Thanh Môi Trường",
-    Default = false,
-    Callback = function(value)
-        if value then
-            for _, sound in pairs(Workspace:GetDescendants()) do
-                if sound:IsA("Sound") and sound.Name == "Ambience" then
-                    sound.Volume = 0
-                end
-            end
-        end
-    end
-})
-
--- === 7. TAB TSB ===
-local TSBLeft = Tabs.TSB:AddLeftGroupbox("Tối Ưu Nhân Vật")
-local TSBRight = Tabs.TSB:AddRightGroupbox("Tối Ưu Môi Trường")
-
-TSBLeft:AddToggle("TSB_NoSkillEffects", {
-    Text = "Tắt Hiệu Ứng Skill",
-    Default = false,
-    Callback = function(value)
-        getgenv().TSB_NoSkillEffects = value
-        task.spawn(function()
-            while getgenv().TSB_NoSkillEffects do
-                for _, effect in pairs(Workspace:GetDescendants()) do
-                    if effect:IsA("ParticleEmitter") and effect.Name == "SkillEffect" then
-                        effect.Enabled = false
-                    end
-                end
-                task.wait(1)
-            end
-        end)
-    end
-})
-
-TSBLeft:AddToggle("TSB_ReduceAura", {
-    Text = "Giảm Hiệu Ứng Aura",
-    Default = false,
-    Callback = function(value)
-        getgenv().TSB_ReduceAura = value
-        task.spawn(function()
-            while getgenv().TSB_ReduceAura do
-                for _, char in pairs(Workspace:GetChildren()) do
-                    if char:FindFirstChild("Humanoid") then
-                        for _, part in pairs(char:GetDescendants()) do
-                            if part:IsA("ParticleEmitter") and part.Name == "Aura" then
-                                part.Enabled = false
-                            end
-                        end
-                    end
-                end
-                task.wait(2)
-            end
-        end)
-    end
-})
-
-TSBLeft:AddToggle("TSB_NoTrails", {
-    Text = "Tắt Vệt Di Chuyển",
-    Default = false,
-    Callback = function(value)
-        getgenv().TSB_NoTrails = value
-        task.spawn(function()
-            while getgenv().TSB_NoTrails do
-                for _, trail in pairs(Workspace:GetDescendants()) do
-                    if trail:IsA("Trail") then
-                        trail.Enabled = false
-                    end
-                end
-                task.wait(1)
-            end
-        end)
-    end
-})
-
-TSBRight:AddToggle("TSB_OptimizeMap", {
-    Text = "Tối Ưu Bản Đồ",
-    Default = false,
-    Callback = function(value)
-        if value then
-            for _, part in pairs(Workspace:GetDescendants()) do
-                if part:IsA("Part") and part.BrickColor == BrickColor.new("Bright blue") then
-                    part.Transparency = 0.5
-                end
-            end
-        end
-    end
-})
-
-TSBRight:AddToggle("TSB_ReducePlayers", {
-    Text = "Giảm Hiệu Ứng Người Chơi",
-    Default = false,
-    Callback = function(value)
-        getgenv().TSB_ReducePlayers = value
-        task.spawn(function()
-            while getgenv().TSB_ReducePlayers do
-                for _, player in pairs(Players:GetPlayers()) do
-                    if player.Character then
-                        for _, part in pairs(player.Character:GetDescendants()) do
-                            if part:IsA("ParticleEmitter") then
-                                part.Enabled = false
-                            end
-                        end
-                    end
-                end
-                task.wait(2)
-            end
-        end)
-    end
-})
-
-TSBRight:AddToggle("TSB_NoBattleEffects", {
-    Text = "Tắt Hiệu Ứng Chiến Đấu",
-    Default = false,
-    Callback = function(value)
-        if value then
-            for _, effect in pairs(Workspace:GetDescendants()) do
-                if effect:IsA("Explosion") or effect:IsA("Fire") then
-                    effect:Destroy()
-                end
-            end
-        end
-    end
-})
-
--- === 8. TAB SETTINGS ===
+-- === 6. TAB SETTINGS ===
 local SetLeft = Tabs.Settings:AddLeftGroupbox("Điều Khiển")
 SetLeft:AddButton("Ẩn/Hiện UI (Ctrl+Phải)", function()
     Library:Unload()
@@ -553,20 +355,44 @@ end)
 
 local SetRight = Tabs.Settings:AddRightGroupbox("Hệ Thống")
 SetRight:AddButton("Khôi Phục Gốc", function()
+    -- Dừng tất cả các task đang chạy
+    for key, value in pairs(getgenv().BoostFPS) do
+        getgenv().BoostFPS[key] = false
+    end
+    
+    -- Khôi phục lighting
     for property, value in pairs(OriginalState.Lighting) do
         Lighting[property] = value
     end
+    
+    -- Khôi phục settings
     settings().Rendering.QualityLevel = OriginalState.Global.QualityLevel
     settings().Rendering.MeshPartDetailLevel = OriginalState.Global.MeshDetail
+    
+    -- Bật lại tất cả hiệu ứng
     for _, obj in pairs(Workspace:GetDescendants()) do
         if obj:IsA("ParticleEmitter") or obj:IsA("Trail") then
             obj.Enabled = true
         end
     end
+    
+    -- Khôi phục tất cả đảo trong Blox Fruit
+    for _, island in pairs(Workspace:GetChildren()) do
+        if island:IsA("Model") and island:FindFirstChild("Terrain") then
+            island.Parent = Workspace
+            for _, part in pairs(island:GetDescendants()) do
+                if part:IsA("BasePart") then
+                    part.Material = Enum.Material.SmoothPlastic
+                    part.Transparency = 0
+                end
+            end
+        end
+    end
+    
     Library:Notify("Đã khôi phục cài đặt gốc!", 3)
 end)
 
--- === 9. PHÍM TẮT ===
+-- === 7. PHÍM TẮT ===
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
     if input.KeyCode == Enum.KeyCode.RightControl then
@@ -574,11 +400,13 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
     end
 end)
 
--- === 10. HOÀN THIỆN ===
+-- === 8. HOÀN THIỆN ===
 Library:Notify("BoostFPSHub v2.3 đã sẵn sàng!", 5)
+
 SaveManager:SetLibrary(Library)
 SaveManager:SetFolder("BoostFPSHub_v2.3")
 SaveManager:BuildConfigSection(Tabs.Settings)
+
 ThemeManager:SetLibrary(Library)
 ThemeManager:SetFolder("BoostFPSHub_v2.3")
 ThemeManager:ApplyToTab(Tabs.Settings)
