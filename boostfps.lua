@@ -575,7 +575,7 @@ UserInputService.InputBegan:Connect(function(input, gameProcessed)
 end)
 
 -- === 10. HOÀN THIỆN ===
-Library:Notify(BoostFPSHub v2.3 loaded successfully!", 5)
+Library:Notify("BoostFPSHub v2.3 đã sẵn sàng!", 5)
 SaveManager:SetLibrary(Library)
 SaveManager:SetFolder("BoostFPSHub_v2.3")
 SaveManager:BuildConfigSection(Tabs.Settings)
