@@ -1,246 +1,47 @@
---[[ 
-    BoostFPSHub v2.1 — Ultra Enhanced
-    Language: Vietnamese
-    Features: Advanced Optimization, Smooth Animations, Enhanced Security
-]]
+-- BoostFPSHub v2.3 — Tối Ưu FPS Roblox
+-- Language: Vietnamese
+-- Features: Ẩn UI, thu nhỏ, tối ưu đa game, BF local load
 
--- === 1. ENHANCED LOADING SCREEN WITH SMOOTH ANIMATIONS ===
+-- === 1. LOADING SCREEN ===
 local function ShowLoadingScreen()
     if game:GetService("CoreGui"):FindFirstChild("BoostFPS_Loading") then return end
     
     local ScreenGui = Instance.new("ScreenGui")
     ScreenGui.Name = "BoostFPS_Loading"
     ScreenGui.Parent = game:GetService("CoreGui")
-    ScreenGui.IgnoreGuiInset = true
 
     local Frame = Instance.new("Frame")
-    Frame.Size = UDim2.new(1,0,1,0)
-    Frame.BackgroundColor3 = Color3.fromRGB(10, 10, 15)
-    Frame.BackgroundTransparency = 1
+    Frame.Size = UDim2.new(0, 300, 0, 80)
+    Frame.Position = UDim2.new(0.5, -150, 0.5, -40)
+    Frame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+    Frame.BorderSizePixel = 0
     Frame.Parent = ScreenGui
 
-    -- Background Gradient
-    local Gradient = Instance.new("UIGradient")
-    Gradient.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0, Color3.fromRGB(10, 10, 15)),
-        ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 20, 30))
-    })
-    Gradient.Rotation = 45
-    Gradient.Parent = Frame
-
-    -- Animated Background Particles
-    local ParticlesFolder = Instance.new("Folder")
-    ParticlesFolder.Parent = Frame
-
-    -- Create floating particles
-    for i = 1, 15 do
-        local Particle = Instance.new("Frame")
-        Particle.Size = UDim2.new(0, math.random(2, 4), 0, math.random(2, 4))
-        Particle.Position = UDim2.new(math.random(), 0, math.random(), 0)
-        Particle.BackgroundColor3 = Color3.fromRGB(0, 255, 128)
-        Particle.BorderSizePixel = 0
-        Particle.BackgroundTransparency = 0.7
-        Particle.Parent = ParticlesFolder
-        
-        -- Animate particle
-        local TweenService = game:GetService("TweenService")
-        local targetPos = UDim2.new(math.random(), 0, math.random(), 0)
-        local tween = TweenService:Create(Particle, TweenInfo.new(3, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), {
-            Position = targetPos,
-            BackgroundTransparency = math.random(0.3, 0.8)
-        })
-        tween:Play()
-    end
-
-    -- Loading Container
-    local LoadingContainer = Instance.new("Frame")
-    LoadingContainer.Size = UDim2.new(0, 400, 0, 200)
-    LoadingContainer.Position = UDim2.new(0.5, -200, 0.5, -100)
-    LoadingContainer.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
-    LoadingContainer.BackgroundTransparency = 1
-    LoadingContainer.Parent = Frame
-
     local UICorner = Instance.new("UICorner")
-    UICorner.CornerRadius = UDim.new(0, 12)
-    UICorner.Parent = LoadingContainer
+    UICorner.CornerRadius = UDim.new(0, 8)
+    UICorner.Parent = Frame
 
-    local ContainerStroke = Instance.new("UIStroke")
-    ContainerStroke.Color = Color3.fromRGB(50, 50, 60)
-    ContainerStroke.Thickness = 2
-    ContainerStroke.Parent = LoadingContainer
+    local TextLabel = Instance.new("TextLabel")
+    TextLabel.Text = "BoostFPSHub v2.3 - Đang tải..."
+    TextLabel.Size = UDim2.new(1, 0, 1, 0)
+    TextLabel.BackgroundTransparency = 1
+    TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    TextLabel.Font = Enum.Font.Gotham
+    TextLabel.TextSize = 16
+    TextLabel.Parent = Frame
 
-    -- Spinning Loader
-    local LoaderCircle = Instance.new("Frame")
-    LoaderCircle.Size = UDim2.new(0, 60, 0, 60)
-    LoaderCircle.Position = UDim2.new(0.5, -30, 0.3, -30)
-    LoaderCircle.BackgroundTransparency = 1
-    LoaderCircle.Parent = LoadingContainer
-
-    local LoaderStroke = Instance.new("UIStroke")
-    LoaderStroke.Color = Color3.fromRGB(0, 255, 128)
-    LoaderStroke.Thickness = 3
-    LoaderStroke.Parent = LoaderCircle
-
-    -- Animated dots
-    local DotsContainer = Instance.new("Frame")
-    DotsContainer.Size = UDim2.new(0, 60, 0, 20)
-    DotsContainer.Position = UDim2.new(0.5, -30, 0.7, -10)
-    DotsContainer.BackgroundTransparency = 1
-    DotsContainer.Parent = LoadingContainer
-
-    local dots = {}
-    for i = 1, 3 do
-        local dot = Instance.new("Frame")
-        dot.Size = UDim2.new(0, 8, 0, 8)
-        dot.Position = UDim2.new(0.2 * i, -4, 0.5, -4)
-        dot.BackgroundColor3 = Color3.fromRGB(0, 255, 128)
-        dot.BorderSizePixel = 0
-        dot.BackgroundTransparency = 1
-        dot.Parent = DotsContainer
-        
-        local dotCorner = Instance.new("UICorner")
-        dotCorner.CornerRadius = UDim.new(1, 0)
-        dotCorner.Parent = dot
-        
-        table.insert(dots, dot)
-    end
-
-    local Title = Instance.new("TextLabel")
-    Title.Text = "BoostFPSHub v2.1"
-    Title.Size = UDim2.new(1, 0, 0, 30)
-    Title.Position = UDim2.new(0, 0, 0.1, 0)
-    Title.BackgroundTransparency = 1
-    Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-    Title.Font = Enum.Font.GothamBold
-    Title.TextSize = 24
-    Title.TextTransparency = 1
-    Title.Parent = LoadingContainer
-    
-    local SubTitle = Instance.new("TextLabel")
-    SubTitle.Text = "Đang tối ưu hệ thống..."
-    SubTitle.Size = UDim2.new(1, 0, 0, 20)
-    SubTitle.Position = UDim2.new(0, 0, 0.8, 0)
-    SubTitle.BackgroundTransparency = 1
-    SubTitle.TextColor3 = Color3.fromRGB(150, 150, 150)
-    SubTitle.Font = Enum.Font.Gotham
-    SubTitle.TextSize = 14
-    SubTitle.TextTransparency = 1
-    SubTitle.Parent = LoadingContainer
-
-    -- Progress bar
-    local BarBase = Instance.new("Frame")
-    BarBase.Size = UDim2.new(0.8, 0, 0, 4)
-    BarBase.Position = UDim2.new(0.1, 0, 0.9, 0)
-    BarBase.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    BarBase.BorderSizePixel = 0
-    BarBase.BackgroundTransparency = 1
-    BarBase.Parent = LoadingContainer
-    
-    local BarProgress = Instance.new("Frame")
-    BarProgress.Size = UDim2.new(0, 0, 1, 0)
-    BarProgress.BackgroundColor3 = Color3.fromRGB(0, 255, 128)
-    BarProgress.BorderSizePixel = 0
-    BarProgress.Parent = BarBase
-
-    local BarCorner = Instance.new("UICorner")
-    BarCorner.CornerRadius = UDim.new(1, 0)
-    BarCorner.Parent = BarBase
-
-    -- Smooth Animations
-    local TweenService = game:GetService("TweenService")
-    
-    -- Fade in background and container
-    TweenService:Create(Frame, TweenInfo.new(0.8, Enum.EasingStyle.Quad), {BackgroundTransparency = 0}):Play()
-    task.wait(0.3)
-    TweenService:Create(LoadingContainer, TweenInfo.new(0.6, Enum.EasingStyle.Quad), {BackgroundTransparency = 0}):Play()
-
-    -- Fade in text
-    task.wait(0.2)
-    TweenService:Create(Title, TweenInfo.new(0.8, Enum.EasingStyle.Quad), {TextTransparency = 0}):Play()
-    TweenService:Create(SubTitle, TweenInfo.new(0.8, Enum.EasingStyle.Quad), {TextTransparency = 0}):Play()
-    TweenService:Create(BarBase, TweenInfo.new(0.8, Enum.EasingStyle.Quad), {BackgroundTransparency = 0}):Play()
-
-    -- Spinning loader animation
-    local spinConnection
-    spinConnection = game:GetService("RunService").RenderStepped:Connect(function(delta)
-        LoaderCircle.Rotation = LoaderCircle.Rotation + (delta * 180)
-    end)
-
-    -- Animated dots sequence
-    local dotAnimations = {}
-    for i, dot in ipairs(dots) do
-        local tween = TweenService:Create(dot, TweenInfo.new(0.6, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut, -1, true, (i-1)*0.2), {
-            BackgroundTransparency = 0
-        })
-        tween:Play()
-        table.insert(dotAnimations, tween)
-    end
-
-    -- Progress bar animation
-    task.wait(0.5)
-    local progressTween = TweenService:Create(BarProgress, TweenInfo.new(2, Enum.EasingStyle.Quint), {Size = UDim2.new(1, 0, 1, 0)})
-    progressTween:Play()
-
-    -- Update loading text
-    local loadingTexts = {
-        "Đang tải thư viện...",
-        "Đang khởi tạo hệ thống...",
-        "Đang tối ưu hóa...",
-        "Sắp hoàn tất..."
-    }
-    
-    for i, text in ipairs(loadingTexts) do
-        task.wait(0.4)
-        SubTitle.Text = text
-    end
-
-    task.wait(0.5)
-    
-    -- Smooth fade out
-    TweenService:Create(Frame, TweenInfo.new(0.8, Enum.EasingStyle.Quad), {BackgroundTransparency = 1}):Play()
-    TweenService:Create(LoadingContainer, TweenInfo.new(0.6, Enum.EasingStyle.Quad), {BackgroundTransparency = 1}):Play()
-    TweenService:Create(Title, TweenInfo.new(0.5, Enum.EasingStyle.Quad), {TextTransparency = 1}):Play()
-    TweenService:Create(SubTitle, TweenInfo.new(0.5, Enum.EasingStyle.Quad), {TextTransparency = 1}):Play()
-    
-    -- Stop animations
-    if spinConnection then
-        spinConnection:Disconnect()
-    end
-    for _, tween in ipairs(dotAnimations) do
-        pcall(function() tween:Cancel() end)
-    end
-    progressTween:Cancel()
-    
-    task.wait(0.8)
+    task.wait(1.5)
     ScreenGui:Destroy()
 end
 
 ShowLoadingScreen()
 
--- === 2. ENHANCED INITIALIZATION & SECURITY ===
+-- === 2. KHỞI TẠO ===
 if not game:IsLoaded() then game.Loaded:Wait() end
 
--- Safe Library Loading
-local function SafeLoad(url)
-    local success, result = pcall(function()
-        return game:HttpGet(url, true)
-    end)
-    if success then
-        return loadstring(result)()
-    else
-        warn("[Security] Failed to load: " .. url)
-        return nil
-    end
-end
-
-local Library = SafeLoad("https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/Library.lua")
-local ThemeManager = SafeLoad("https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/addons/ThemeManager.lua")
-local SaveManager = SafeLoad("https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/addons/SaveManager.lua")
-
-if not Library then
-    warn("Failed to load required libraries!")
-    return
-end
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/Library.lua"))()
+local ThemeManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/addons/ThemeManager.lua"))()
+local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/violin-suzutsuki/LinoriaLib/main/addons/SaveManager.lua"))()
 
 -- Services
 local Players = game:GetService("Players")
@@ -248,17 +49,14 @@ local Workspace = game:GetService("Workspace")
 local Lighting = game:GetService("Lighting")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
 local LocalPlayer = Players.LocalPlayer
 
--- === 3. ENHANCED STATE MANAGEMENT ===
+-- Lưu trạng thái gốc
 local OriginalState = {
     Lighting = {
         GlobalShadows = Lighting.GlobalShadows,
         FogEnd = Lighting.FogEnd,
         Brightness = Lighting.Brightness,
-        Ambient = Lighting.Ambient,
-        OutdoorAmbient = Lighting.OutdoorAmbient,
         Technology = Lighting.Technology
     },
     Global = {
@@ -267,252 +65,476 @@ local OriginalState = {
     }
 }
 
-local ActiveTweens = {}
-local PerformanceStats = {
-    FPS = 0,
-    Ping = 0,
-    MemoryUsage = 0
-}
-
-local function SafeCall(func, errorMsg)
-    local success, result = pcall(func)
-    if not success then 
-        warn("[BoostFPSHub Error]: " .. (errorMsg or tostring(result)))
-        return false
-    end
-    return true
-end
-
-local function RestoreDefaults()
-    SafeCall(function()
-        -- Restore Lighting
-        for property, value in pairs(OriginalState.Lighting) do
-            Lighting[property] = value
-        end
-        
-        -- Restore Settings
-        settings().Rendering.QualityLevel = OriginalState.Global.QualityLevel
-        settings().Rendering.MeshPartDetailLevel = OriginalState.Global.MeshDetail
-        
-        -- Restore Objects
-        for _, v in pairs(Workspace:GetDescendants()) do
-            if v:IsA("BasePart") then 
-                v.Material = Enum.Material.Plastic 
-                v.Transparency = 0 
-            end
-            if v:IsA("Decal") or v:IsA("Texture") then 
-                v.Transparency = 0 
-            end
-            if v:IsA("ParticleEmitter") then
-                v.Enabled = true
-            end
-            if v:IsA("Light") then
-                v.Enabled = true
-            end
-        end
-        
-        -- Enable 3D rendering
-        RunService:Set3dRenderingEnabled(true)
-        
-        -- Stop all active tweens
-        for _, tween in pairs(ActiveTweens) do
-            pcall(function() tween:Cancel() end)
-        end
-        ActiveTweens = {}
-        
-        Library:Notify("Đã khôi phục cài đặt gốc!", 5)
-    end, "RestoreDefaults failed")
-end
-
--- === 4. ENHANCED UI WITH SMOOTH ANIMATIONS ===
+-- === 3. TẠO GIAO DIỆN ===
 local Window = Library:CreateWindow({
-    Title = "BoostFPSHub v2.1 | Ultra Enhanced",
+    Title = "BoostFPSHub v2.3",
     Center = true,
     AutoShow = true,
-    TabPadding = 8,
-    MenuFadeTime = 0.3
+    TabPadding = 6,
+    MenuFadeTime = 0.1
 })
 
--- Enhanced Watermark with smooth updates
-Library:SetWatermark("BoostFPSHub v2.1 | Initializing...")
-Library:SetWatermarkVisibility(true)
-
--- Performance monitoring
+-- Watermark FPS
+Library:SetWatermark("BoostFPSHub v2.3 | FPS: --")
 task.spawn(function()
     while true do
         task.wait(0.5)
-        SafeCall(function()
-            local fps = math.floor(1 / RunService.RenderStepped:Wait())
-            local ping = math.floor(game:GetService("Stats").Network.ServerStatsItem["Data Ping"]:GetValue())
-            PerformanceStats.FPS = fps
-            PerformanceStats.Ping = ping
-            
-            Library:SetWatermark(string.format("BoostFPSHub v2.1 | FPS: %d | Ping: %dms", fps, ping))
-        end, "Performance update failed")
+        local fps = math.floor(1 / RunService.RenderStepped:Wait())
+        Library:SetWatermark("BoostFPSHub v2.3 | FPS: "..fps)
     end
 end)
 
+-- Tabs
 local Tabs = {
-    Main = Window:AddTab("Chính (Main)"),
-    Game = Window:AddTab("Game Boost"), 
-    Extreme = Window:AddTab("Siêu Cấp"),
-    Visuals = Window:AddTab("Hiệu Ứng"),
-    Misc = Window:AddTab("Tiện Ích"),
-    Settings = Window:AddTab("Cài Đặt"),
+    Main = Window:AddTab("Main"),
+    BloxFruit = Window:AddTab("Blox Fruit"),
+    Brainrot = Window:AddTab("Steal a Brainrot"),
+    TSB = Window:AddTab("TSB"),
+    Settings = Window:AddTab("Settings"),
 }
 
--- === 5. ENHANCED FEATURES ===
-
--- >> TAB 1: MAIN BOOST (ENHANCED)
-local MainGroup = Tabs.Main:AddLeftGroupbox("Tối Ưu Cơ Bản")
-
-MainGroup:AddToggle("BoostFPS", {
-    Text = "Boost FPS (Khuyên Dùng)", 
-    Default = true, 
-    Callback = function(v)
-        SafeCall(function()
-            if v then
-                settings().Rendering.QualityLevel = 1
-                settings().Rendering.MeshPartDetailLevel = Enum.MeshPartDetailLevel.Level04
-                workspace.StreamingEnabled = true
-                Library:Notify("Đã kích hoạt Boost FPS!", 3)
-            else
-                settings().Rendering.QualityLevel = OriginalState.Global.QualityLevel
-                settings().Rendering.MeshPartDetailLevel = OriginalState.Global.MeshDetail
-            end
-        end, "BoostFPS toggle failed")
-    end
-})
-
-MainGroup:AddToggle("MobileMode", {
-    Text = "Chế Độ Mobile", 
-    Default = false, 
-    Callback = function(v)
-        Lighting.GlobalShadows = not v
-        if v then 
-            Lighting.FogEnd = 9e9 
-            Library:Notify("Đã bật chế độ Mobile!", 3)
-        else 
-            Lighting.FogEnd = OriginalState.Lighting.FogEnd 
-        end
-    end
-})
-
-MainGroup:AddToggle("FullBright", {
-    Text = "Sáng Tối Đa", 
-    Default = false, 
-    Callback = function(v)
-        if v then
-            Lighting.Ambient = Color3.new(1,1,1)
-            Lighting.OutdoorAmbient = Color3.new(1,1,1)
-            Lighting.ClockTime = 14
-            Library:Notify("Đã bật FullBright!", 3)
+-- === 4. TAB MAIN ===
+local MainLeft = Tabs.Main:AddLeftGroupbox("Tối Ưu FPS")
+MainLeft:AddToggle("UltraBoost", {
+    Text = "Ultra Boost FPS",
+    Default = true,
+    Callback = function(value)
+        if value then
+            settings().Rendering.QualityLevel = 1
+            settings().Rendering.MeshPartDetailLevel = Enum.MeshPartDetailLevel.Level01
+            Lighting.GlobalShadows = false
+            Lighting.FogEnd = 9e9
         else
-            Lighting.Ambient = OriginalState.Lighting.Ambient
-            Lighting.OutdoorAmbient = OriginalState.Lighting.OutdoorAmbient
-            Lighting.ClockTime = 12
+            settings().Rendering.QualityLevel = OriginalState.Global.QualityLevel
+            settings().Rendering.MeshPartDetailLevel = OriginalState.Global.MeshDetail
+            Lighting.GlobalShadows = OriginalState.Lighting.GlobalShadows
+            Lighting.FogEnd = OriginalState.Lighting.FogEnd
         end
     end
 })
 
-local OptGroup = Tabs.Main:AddRightGroupbox("Tối Ưu Hệ Thống")
-
-OptGroup:AddToggle("CPUThrottle", {
-    Text = "Tiết Kiệm CPU", 
-    Default = true, 
-    Callback = function(v)
-        local focused = true
-        UserInputService.WindowFocused:Connect(function() 
-            focused = true 
-            if v then RunService:SetFpsCap(999) end 
-        end)
-        UserInputService.WindowFocusReleased:Connect(function() 
-            focused = false 
-            if v then RunService:SetFpsCap(30) end 
+MainLeft:AddToggle("RemoveParticles", {
+    Text = "Xóa Hiệu Ứng",
+    Default = true,
+    Callback = function(value)
+        getgenv().RemoveParticles = value
+        task.spawn(function()
+            while getgenv().RemoveParticles do
+                for _, obj in pairs(Workspace:GetDescendants()) do
+                    if obj:IsA("ParticleEmitter") or obj:IsA("Trail") then
+                        obj.Enabled = false
+                    end
+                end
+                task.wait(1)
+            end
         end)
     end
 })
 
-OptGroup:AddToggle("AutoClearRAM", {
-    Text = "Dọn RAM Tự Động", 
-    Default = true, 
-    Callback = function(v)
-        if v then
-            task.spawn(function()
-                while getgenv().AutoClearRAM do
-                    task.wait(20)
-                    SafeCall(function()
-                        -- Clean up debris and effects
-                        for _, obj in pairs(Workspace:GetDescendants()) do
-                            if obj:IsA("Part") and (obj.Name == "Debris" or obj.Name == "Effect" or obj.Name == "Bullet") then
-                                if not obj:FindFirstAncestorOfClass("Model") then
-                                    obj:Destroy()
-                                end
-                            end
-                        end
-                        -- Garbage collection
-                        for i = 1, 2 do 
-                            task.wait()
-                            collectgarbage("collect")
-                        end
-                    end, "AutoClearRAM failed")
-                end
+MainLeft:AddToggle("NoShadows", {
+    Text = "Tắt Bóng Đổ",
+    Default = true,
+    Callback = function(value)
+        Lighting.GlobalShadows = not value
+    end
+})
+
+local MainRight = Tabs.Main:AddRightGroupbox("Hệ Thống")
+MainRight:AddToggle("AutoClean", {
+    Text = "Tự Động Dọn RAM",
+    Default = true,
+    Callback = function(value)
+        getgenv().AutoClean = value
+        task.spawn(function()
+            while getgenv().AutoClean do
+                task.wait(30)
+                collectgarbage("collect")
+            end
+        end)
+    end
+})
+
+MainRight:AddToggle("CPUOptimize", {
+    Text = "Tối Ưu CPU",
+    Default = true,
+    Callback = function(value)
+        if value then
+            UserInputService.WindowFocused:Connect(function()
+                RunService:SetFpsCap(999)
+            end)
+            UserInputService.WindowFocusReleased:Connect(function()
+                RunService:SetFpsCap(30)
             end)
         end
     end
 })
 
--- >> NEW TAB: VISUAL EFFECTS
-local VisualGroup = Tabs.Visuals:AddLeftGroupbox("Hiệu Ứng Hình Ảnh")
+-- === 5. TAB BLOX FRUIT NÂNG CAO ===
+local BFLeft = Tabs.BloxFruit:AddLeftGroupbox("Tối Ưu Blox Fruit")
+local BFRight = Tabs.BloxFruit:AddRightGroupbox("Tối Ưu Map")
 
-VisualGroup:AddToggle("SmoothCamera", {
-    Text = "Camera Mượt Mà", 
-    Default = false, 
-    Callback = function(v)
-        if v then
-            local camera = Workspace.CurrentCamera
-            if camera then
-                camera.CameraType = Enum.CameraType.Scriptable
-                Library:Notify("Đã bật Camera mượt mà!", 3)
+-- Tắt hiệu ứng skill
+BFLeft:AddToggle("BF_NoSkillEffects", {
+    Text = "Tắt Hiệu Ứng Skill",
+    Default = false,
+    Callback = function(value)
+        getgenv().BF_NoSkillEffects = value
+        task.spawn(function()
+            while getgenv().BF_NoSkillEffects do
+                for _, effect in pairs(game:GetService("ReplicatedStorage").Effect.Container:GetDescendants()) do
+                    if effect:IsA("ParticleEmitter") then
+                        effect.Enabled = false
+                    end
+                end
+                task.wait(1)
             end
-        else
-            local camera = Workspace.CurrentCamera
-            if camera then
-                camera.CameraType = Enum.CameraType.Custom
+        end)
+    end
+})
+
+-- Giảm nước
+BFLeft:AddToggle("BF_ReduceWater", {
+    Text = "Giảm Hiệu Ứng Nước",
+    Default = false,
+    Callback = function(value)
+        if value then
+            for _, part in pairs(Workspace:GetDescendants()) do
+                if part:IsA("Part") and part.Name == "Water" then
+                    part.Transparency = 0.8
+                end
             end
         end
     end
 })
 
-VisualGroup:AddSlider("FOV", {
-    Text = "Góc nhìn (FOV)",
-    Default = 70,
-    Min = 50,
-    Max = 120,
-    Rounding = 0,
-    Callback = function(v)
-        local camera = Workspace.CurrentCamera
-        if camera then
-            camera.FieldOfView = v
+-- Tối ưu đảo (cơ bản)
+BFRight:AddToggle("BF_OptimizeIslands", {
+    Text = "Tối Ưu Đảo",
+    Default = false,
+    Callback = function(value)
+        if value then
+            for _, island in pairs(Workspace:GetChildren()) do
+                if island:IsA("Model") and island:FindFirstChild("Terrain") then
+                    island.Terrain.WaterTransparency = 0.9
+                end
+            end
         end
     end
 })
 
-VisualGroup:AddToggle("DepthOfField", {
-    Text = "Hiệu Ứng Xóa Phông", 
-    Default = false, 
-    Callback = function(v)
-        if v then
-            local depth = Instance.new("DepthOfFieldEffect")
-            depth.Parent = Lighting
-            depth.FarIntensity = 0
-            depth.FocusDistance = 50
-            depth.InFocusRadius = 50
-            depth.NearIntensity = 1
-            Library:Notify("Đã bật hiệu ứng xóa phông!", 3)
+-- Tắt hiệu ứng trái cây
+BFRight:AddToggle("BF_NoFruitEffects", {
+    Text = "Tắt Hiệu Ứng Trái",
+    Default = false,
+    Callback = function(value)
+        getgenv().BF_NoFruitEffects = value
+        task.spawn(function()
+            while getgenv().BF_NoFruitEffects do
+                for _, fruit in pairs(Workspace:GetChildren()) do
+                    if fruit:FindFirstChild("Handle") then
+                        for _, effect in pairs(fruit.Handle:GetDescendants()) do
+                            if effect:IsA("ParticleEmitter") then
+                                effect.Enabled = false
+                            end
+                        end
+                    end
+                end
+                task.wait(2)
+            end
+        end)
+    end
+})
+
+-- Giảm hiệu ứng người chơi
+BFRight:AddToggle("BF_ReducePlayers", {
+    Text = "Giảm Hiệu Ứng Người Chơi",
+    Default = false,
+    Callback = function(value)
+        getgenv().BF_ReducePlayers = value
+        task.spawn(function()
+            while getgenv().BF_ReducePlayers do
+                for _, player in pairs(Players:GetPlayers()) do
+                    if player.Character then
+                        for _, part in pairs(player.Character:GetDescendants()) do
+                            if part:IsA("ParticleEmitter") then
+                                part.Enabled = false
+                            end
+                        end
+                    end
+                end
+                task.wait(2)
+            end
+        end)
+    end
+})
+
+-- BF Local Loading / Culling nâng cao
+BFRight:AddToggle("BF_LocalLoad", {
+    Text = "Load Xung Quanh Người Chơi",
+    Default = false,
+    Callback = function(value)
+        getgenv().BF_LocalLoad = value
+        if value then
+            task.spawn(function()
+                local player = Players.LocalPlayer
+                local radius = 300 -- bán kính load đảo
+                while getgenv().BF_LocalLoad do
+                    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                        local hrp = player.Character.HumanoidRootPart.Position
+                        for _, island in pairs(Workspace:GetChildren()) do
+                            if island:IsA("Model") and island:FindFirstChild("Terrain") then
+                                local distance = (island:GetModelCFrame().p - hrp).Magnitude
+                                if distance <= radius then
+                                    if not island.Parent then island.Parent = Workspace end
+                                    if distance > 150 then
+                                        for _, part in pairs(island:GetDescendants()) do
+                                            if part:IsA("BasePart") then
+                                                part.Material = Enum.Material.Plastic
+                                                part.Transparency = math.clamp((distance-150)/150, 0, 0.8)
+                                            end
+                                        end
+                                    else
+                                        for _, part in pairs(island:GetDescendants()) do
+                                            if part:IsA("BasePart") then
+                                                part.Material = Enum.Material.SmoothPlastic
+                                                part.Transparency = 0
+                                            end
+                                        end
+                                    end
+                                else
+                                    island.Parent = nil
+                                end
+                            end
+                        end
+                    end
+                    task.wait(0.5)
+                end
+            end)
         else
-            for _, effect in pairs(Lighting:GetChildren()) do
-                if effect:IsA("DepthOfFieldEffect") then
+            for _, island in pairs(Workspace:GetChildren()) do
+                if island:IsA("Model") and island:FindFirstChild("Terrain") then
+                    island.Parent = Workspace
+                    for _, part in pairs(island:GetDescendants()) do
+                        if part:IsA("BasePart") then
+                            part.Material = Enum.Material.SmoothPlastic
+                            part.Transparency = 0
+                        end
+                    end
+                end
+            end
+        end
+    end
+})
+
+-- === 6. TAB STEAL A BRAINROT ===
+local BRLeft = Tabs.Brainrot:AddLeftGroupbox("Tối Ưu Nhân Vật")
+local BRRight = Tabs.Brainrot:AddRightGroupbox("Tối Ưu Môi Trường")
+
+BRLeft:AddToggle("BR_NoGlow", {
+    Text = "Tắt Hiệu Ứng Phát Sáng",
+    Default = false,
+    Callback = function(value)
+        getgenv().BR_NoGlow = value
+        task.spawn(function()
+            while getgenv().BR_NoGlow do
+                for _, obj in pairs(Workspace:GetDescendants()) do
+                    if obj:IsA("ParticleEmitter") and (obj.Name == "Glow" or obj.Name == "Aura") then
+                        obj.Enabled = false
+                    end
+                end
+                task.wait(1)
+            end
+        end)
+    end
+})
+
+BRLeft:AddToggle("BR_ReduceCharacters", {
+    Text = "Giảm Hiệu Ứng Nhân Vật",
+    Default = false,
+    Callback = function(value)
+        getgenv().BR_ReduceCharacters = value
+        task.spawn(function()
+            while getgenv().BR_ReduceCharacters do
+                for _, char in pairs(Workspace:GetChildren()) do
+                    if char:FindFirstChild("Humanoid") then
+                        for _, part in pairs(char:GetDescendants()) do
+                            if part:IsA("ParticleEmitter") or part:IsA("Trail") then
+                                part.Enabled = false
+                            end
+                        end
+                    end
+                end
+                task.wait(2)
+            end
+        end)
+    end
+})
+
+BRLeft:AddToggle("BR_NoWeaponEffects", {
+    Text = "Tắt Hiệu Ứng Vũ Khí",
+    Default = false,
+    Callback = function(value)
+        if value then
+            for _, tool in pairs(Workspace:GetDescendants()) do
+                if tool:IsA("Tool") then
+                    for _, effect in pairs(tool:GetDescendants()) do
+                        if effect:IsA("ParticleEmitter") then
+                            effect.Enabled = false
+                        end
+                    end
+                end
+            end
+        end
+    end
+})
+
+BRRight:AddToggle("BR_OptimizeMap", {
+    Text = "Tối Ưu Bản Đồ",
+    Default = false,
+    Callback = function(value)
+        if value then
+            for _, part in pairs(Workspace:GetDescendants()) do
+                if part:IsA("Part") and part.Material == Enum.Material.Neon then
+                    part.Material = Enum.Material.Plastic
+                end
+            end
+        end
+    end
+})
+
+BRRight:AddToggle("BR_ReduceLighting", {
+    Text = "Giảm Ánh Sáng",
+    Default = false,
+    Callback = function(value)
+        if value then
+            Lighting.Brightness = 1
+            Lighting.Ambient = Color3.new(0.3, 0.3, 0.3)
+        else
+            Lighting.Brightness = OriginalState.Lighting.Brightness
+            Lighting.Ambient = Color3.new(1, 1, 1)
+        end
+    end
+})
+
+BRRight:AddToggle("BR_NoAmbientSound", {
+    Text = "Tắt Âm Thanh Môi Trường",
+    Default = false,
+    Callback = function(value)
+        if value then
+            for _, sound in pairs(Workspace:GetDescendants()) do
+                if sound:IsA("Sound") and sound.Name == "Ambience" then
+                    sound.Volume = 0
+                end
+            end
+        end
+    end
+})
+
+-- === 7. TAB TSB ===
+local TSBLeft = Tabs.TSB:AddLeftGroupbox("Tối Ưu Nhân Vật")
+local TSBRight = Tabs.TSB:AddRightGroupbox("Tối Ưu Môi Trường")
+
+TSBLeft:AddToggle("TSB_NoSkillEffects", {
+    Text = "Tắt Hiệu Ứng Skill",
+    Default = false,
+    Callback = function(value)
+        getgenv().TSB_NoSkillEffects = value
+        task.spawn(function()
+            while getgenv().TSB_NoSkillEffects do
+                for _, effect in pairs(Workspace:GetDescendants()) do
+                    if effect:IsA("ParticleEmitter") and effect.Name == "SkillEffect" then
+                        effect.Enabled = false
+                    end
+                end
+                task.wait(1)
+            end
+        end)
+    end
+})
+
+TSBLeft:AddToggle("TSB_ReduceAura", {
+    Text = "Giảm Hiệu Ứng Aura",
+    Default = false,
+    Callback = function(value)
+        getgenv().TSB_ReduceAura = value
+        task.spawn(function()
+            while getgenv().TSB_ReduceAura do
+                for _, char in pairs(Workspace:GetChildren()) do
+                    if char:FindFirstChild("Humanoid") then
+                        for _, part in pairs(char:GetDescendants()) do
+                            if part:IsA("ParticleEmitter") and part.Name == "Aura" then
+                                part.Enabled = false
+                            end
+                        end
+                    end
+                end
+                task.wait(2)
+            end
+        end)
+    end
+})
+
+TSBLeft:AddToggle("TSB_NoTrails", {
+    Text = "Tắt Vệt Di Chuyển",
+    Default = false,
+    Callback = function(value)
+        getgenv().TSB_NoTrails = value
+        task.spawn(function()
+            while getgenv().TSB_NoTrails do
+                for _, trail in pairs(Workspace:GetDescendants()) do
+                    if trail:IsA("Trail") then
+                        trail.Enabled = false
+                    end
+                end
+                task.wait(1)
+            end
+        end)
+    end
+})
+
+TSBRight:AddToggle("TSB_OptimizeMap", {
+    Text = "Tối Ưu Bản Đồ",
+    Default = false,
+    Callback = function(value)
+        if value then
+            for _, part in pairs(Workspace:GetDescendants()) do
+                if part:IsA("Part") and part.BrickColor == BrickColor.new("Bright blue") then
+                    part.Transparency = 0.5
+                end
+            end
+        end
+    end
+})
+
+TSBRight:AddToggle("TSB_ReducePlayers", {
+    Text = "Giảm Hiệu Ứng Người Chơi",
+    Default = false,
+    Callback = function(value)
+        getgenv().TSB_ReducePlayers = value
+        task.spawn(function()
+            while getgenv().TSB_ReducePlayers do
+                for _, player in pairs(Players:GetPlayers()) do
+                    if player.Character then
+                        for _, part in pairs(player.Character:GetDescendants()) do
+                            if part:IsA("ParticleEmitter") then
+                                part.Enabled = false
+                            end
+                        end
+                    end
+                end
+                task.wait(2)
+            end
+        end)
+    end
+})
+
+TSBRight:AddToggle("TSB_NoBattleEffects", {
+    Text = "Tắt Hiệu Ứng Chiến Đấu",
+    Default = false,
+    Callback = function(value)
+        if value then
+            for _, effect in pairs(Workspace:GetDescendants()) do
+                if effect:IsA("Explosion") or effect:IsA("Fire") then
                     effect:Destroy()
                 end
             end
@@ -520,185 +542,45 @@ VisualGroup:AddToggle("DepthOfField", {
     end
 })
 
--- >> TAB 2: GAME BOOST (ENHANCED)
-local GameGroup = Tabs.Game:AddLeftGroupbox("Game Hiện Tại")
+-- === 8. TAB SETTINGS ===
+local SetLeft = Tabs.Settings:AddLeftGroupbox("Điều Khiển")
+SetLeft:AddButton("Ẩn/Hiện UI (Ctrl+Phải)", function()
+    Library:Unload()
+end)
+SetLeft:AddButton("Thu Nhỏ", function()
+    Library.Minimize = not Library.Minimize
+end)
 
-local function DetectGame()
-    local id = game.PlaceId
-    if id == 2753915549 or id == 4442272183 or id == 7449423635 then 
-        return "BloxFruit"
-    elseif id == 10449761463 then 
-        return "TSB"
-    elseif id == 6516141723 then 
-        return "Doors"
-    else 
-        return "Universal" 
+local SetRight = Tabs.Settings:AddRightGroupbox("Hệ Thống")
+SetRight:AddButton("Khôi Phục Gốc", function()
+    for property, value in pairs(OriginalState.Lighting) do
+        Lighting[property] = value
     end
-end
-
-local CurrentGame = DetectGame()
-GameGroup:AddLabel("Đang chơi: " .. CurrentGame)
-
-if CurrentGame == "BloxFruit" then
-    GameGroup:AddToggle("BF_NoSkill", {
-        Text = "Tắt Hiệu Ứng Skill", 
-        Default = false, 
-        Callback = function(v)
-            task.spawn(function()
-                while getgenv().BF_NoSkill do
-                    SafeCall(function()
-                        for _, p in pairs(game.ReplicatedStorage:GetDescendants()) do
-                            if p:IsA("ParticleEmitter") then 
-                                p.Enabled = not v 
-                            end
-                        end
-                    end, "BF_NoSkill failed")
-                    task.wait(1)
-                end
-            end)
-        end
-    })
-    
-elseif CurrentGame == "Doors" then
-    GameGroup:AddToggle("Doors_NoLight", {
-        Text = "Giảm Ánh Sáng", 
-        Default = false, 
-        Callback = function(v)
-            SafeCall(function()
-                for _, l in pairs(Workspace:GetDescendants()) do 
-                    if l:IsA("Light") then 
-                        l.Enabled = not v 
-                    end 
-                end
-            end, "Doors_NoLight failed")
-        end
-    })
-end
-
--- >> TAB 3: EXTREME (ENHANCED)
-local ExtremeGroup = Tabs.Extreme:AddLeftGroupbox("Cảnh Báo: Ảnh hưởng đồ họa")
-
-ExtremeGroup:AddToggle("Wireframe", {
-    Text = "Chế Độ Khung Dây", 
-    Default = false, 
-    Callback = function(v)
-        SafeCall(function()
-            for _, p in pairs(Workspace:GetDescendants()) do
-                if p:IsA("BasePart") then
-                    p.Material = v and Enum.Material.ForceField or Enum.Material.Plastic
-                    if v then 
-                        p.Transparency = 0.3 
-                    else 
-                        p.Transparency = 0 
-                    end
-                end
-            end
-        end, "Wireframe toggle failed")
-    end
-})
-
--- >> TAB 4: MISC (ENHANCED)
-local MiscGroup = Tabs.Misc:AddLeftGroupbox("Hệ Thống & Server")
-
-MiscGroup:AddToggle("AntiAFK", {
-    Text = "Chống AFK", 
-    Default = true, 
-    Callback = function(v)
-        if v then
-            local vu = game:GetService("VirtualUser")
-            LocalPlayer.Idled:Connect(function()
-                vu:CaptureController()
-                vu:ClickButton2(Vector2.new())
-            end)
-            Library:Notify("Đã bật Anti-AFK!", 3)
+    settings().Rendering.QualityLevel = OriginalState.Global.QualityLevel
+    settings().Rendering.MeshPartDetailLevel = OriginalState.Global.MeshDetail
+    for _, obj in pairs(Workspace:GetDescendants()) do
+        if obj:IsA("ParticleEmitter") or obj:IsA("Trail") then
+            obj.Enabled = true
         end
     end
-})
+    Library:Notify("Đã khôi phục cài đặt gốc!", 3)
+end)
 
-MiscGroup:AddButton("Rejoin Server", {
-    Func = function()
-        Library:Notify("Đang kết nối lại...", 3)
-        game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer)
+-- === 9. PHÍM TẮT ===
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.KeyCode == Enum.KeyCode.RightControl then
+        Library:Unload()
     end
-})
+end)
 
-MiscGroup:AddButton("Server Hop", {
-    Func = function()
-        Library:Notify("Đang tìm server mới...", 3)
-        SafeCall(function()
-            local Http = game:GetService("HttpService")
-            local TPS = game:GetService("TeleportService")
-            local Api = "https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=100"
-            
-            local function ListServers(cursor)
-                local Raw = game:HttpGet(Api .. ((cursor and "&cursor="..cursor) or ""))
-                return Http:JSONDecode(Raw)
-            end
-            
-            local Server, Next
-            repeat
-                local Servers = ListServers(Next)
-                Server = Servers.data[math.random(1, #Servers.data)]
-                Next = Servers.nextPageCursor
-            until Server and Server.playing < Server.maxPlayers and Server.id ~= game.JobId
-            
-            if Server then
-                TPS:TeleportToPlaceInstance(game.PlaceId, Server.id, LocalPlayer)
-            end
-        end, "Server Hop failed")
-    end
-})
-
--- >> TAB 5: SETTINGS (ENHANCED)
-local SetGroup = Tabs.Settings:AddLeftGroupbox("Hệ Thống")
-
-SetGroup:AddButton("KHÔI PHỤC MẶC ĐỊNH", {
-    Func = RestoreDefaults
-})
-
-SetGroup:AddButton("Tắt Script", {
-    Func = function() 
-        Library:Notify("Tắt BoostFPSHub...", 3)
-        RestoreDefaults()
-        task.wait(1)
-        Window:Unload() 
-    end
-})
-
--- Enhanced Theme Manager
-local ThemeGroup = Tabs.Settings:AddRightGroupbox("Giao Diện")
-ThemeManager:SetLibrary(Library)
-ThemeManager:SetFolder("BoostFPSHub_v2.1")
-ThemeManager:ApplyToTab(ThemeGroup)
-
--- Enhanced Save Manager
-local ConfigGroup = Tabs.Settings:AddRightGroupbox("Cấu Hình")
+-- === 10. HOÀN THIỆN ===
+Library:Notify(BoostFPSHub v2.3 loaded successfully!", 5)
 SaveManager:SetLibrary(Library)
-SaveManager:SetFolder("BoostFPSHub_v2.1")
-SaveManager:BuildConfigSection(ConfigGroup)
+SaveManager:SetFolder("BoostFPSHub_v2.3")
+SaveManager:BuildConfigSection(Tabs.Settings)
+ThemeManager:SetLibrary(Library)
+ThemeManager:SetFolder("BoostFPSHub_v2.3")
+ThemeManager:ApplyToTab(Tabs.Settings)
 
--- === 6. FINAL INITIALIZATION ===
-Library:Notify("BoostFPSHub v2.1 Đã Sẵn Sàng! FPS Boosted!", 5)
-
--- Auto-save configuration
-task.spawn(function()
-    task.wait(5)
-    SafeCall(function()
-        SaveManager:Save(game.PlaceId .. "_config")
-    end, "Auto-save failed")
-end)
-
--- Clean up on script termination
-game:GetService("UserInputService").WindowFocused:Connect(function()
-    if getgenv().CPUThrottle then
-        RunService:SetFpsCap(999)
-    end
-end)
-
-game:GetService("UserInputService").WindowFocusReleased:Connect(function()
-    if getgenv().CPUThrottle then
-        RunService:SetFpsCap(30)
-    end
-end)
-
-warn("BoostFPSHub v2.1 - Enhanced Edition Loaded Successfully!")
+warn("BoostFPSHub v2.3 loaded successfully!")
