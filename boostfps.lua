@@ -1,56 +1,120 @@
---[[
-  BoostFPSHub v8.0 - Delta Fixed Edition
-  Simple & Working Version for Delta Executor
-]]
+-- BoostFPSHub v2.1.1 — Tối Ưu FPS Roblox
+-- Language: Vietnamese
+-- Fixed for Delta Executor
 
--- ========== BASIC SETUP ==========
+-- === 0. KHỞI TẠO BIẾN TOÀN CỤC ===
+getgenv().BoostFPS = {
+    RemoveParticles = false,
+    AutoClean = false,
+    BF_NoSkillEffects = false,
+    BF_NoFruitEffects = false,
+    BF_ReducePlayers = false,
+    BF_LocalLoad = false,
+    BF_ReduceWater = false,
+    BF_OptimizeIslands = false
+}
+
+-- === 1. LOADING SCREEN ===
+local function ShowLoadingScreen()
+    if game:GetService("CoreGui"):FindFirstChild("BoostFPS_Loading") then return end
+    
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = "BoostFPS_Loading"
+    ScreenGui.Parent = game:GetService("CoreGui")
+
+    local Frame = Instance.new("Frame")
+    Frame.Size = UDim2.new(0, 300, 0, 80)
+    Frame.Position = UDim2.new(0.5, -150, 0.5, -40)
+    Frame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+    Frame.BorderSizePixel = 0
+    Frame.Parent = ScreenGui
+
+    local UICorner = Instance.new("UICorner")
+    UICorner.CornerRadius = UDim.new(0, 8)
+    UICorner.Parent = Frame
+
+    local TextLabel = Instance.new("TextLabel")
+    TextLabel.Text = "BoostFPSHub v2.1.1 - Đang tải..."
+    TextLabel.Size = UDim2.new(1, 0, 1, 0)
+    TextLabel.BackgroundTransparency = 1
+    TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    TextLabel.Font = Enum.Font.Gotham
+    TextLabel.TextSize = 16
+    TextLabel.Parent = Frame
+
+    task.wait(1.5)
+    ScreenGui:Destroy()
+end
+
+ShowLoadingScreen()
+
+-- === 2. KHỞI TẠO ===
+if not game:IsLoaded() then game.Loaded:Wait() end
+
+-- Services
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
 local Lighting = game:GetService("Lighting")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
+local LocalPlayer = Players.LocalPlayer
 
--- Wait for game
-if not game:IsLoaded() then game.Loaded:Wait() end
-task.wait(1)
+-- Lưu trạng thái gốc
+local OriginalState = {
+    Lighting = {
+        GlobalShadows = Lighting.GlobalShadows,
+        FogEnd = Lighting.FogEnd,
+        Brightness = Lighting.Brightness,
+        Technology = Lighting.Technology
+    },
+    Global = {
+        QualityLevel = settings().Rendering.QualityLevel,
+        MeshDetail = settings().Rendering.MeshPartDetailLevel
+    }
+}
 
--- ========== SIMPLE UI CREATION ==========
+-- === 3. TẠO GIAO DIỆN ĐƠN GIẢN ===
 local function CreateSimpleUI()
-    -- Create ScreenGui
+    -- Tạo ScreenGui
     local ScreenGui = Instance.new("ScreenGui")
-    ScreenGui.Name = "FPSBoosterUI"
+    ScreenGui.Name = "BoostFPSHubUI"
     ScreenGui.Parent = game:GetService("CoreGui")
     ScreenGui.ResetOnSpawn = false
-    
+
     -- Main Frame
     local MainFrame = Instance.new("Frame")
-    MainFrame.Size = UDim2.new(0, 300, 0, 400)
-    MainFrame.Position = UDim2.new(0.5, -150, 0.5, -200)
+    MainFrame.Size = UDim2.new(0, 350, 0, 450)
+    MainFrame.Position = UDim2.new(0.5, -175, 0.5, -225)
     MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
     MainFrame.BorderSizePixel = 0
     MainFrame.Parent = ScreenGui
-    
-    -- Corner
+
     local UICorner = Instance.new("UICorner")
-    UICorner.CornerRadius = UDim.new(0, 10)
+    UICorner.CornerRadius = UDim.new(0, 8)
     UICorner.Parent = MainFrame
-    
-    -- Title
-    local Title = Instance.new("TextLabel")
-    Title.Text = "🚀 FPS Booster v8.0"
-    Title.Size = UDim2.new(1, 0, 0, 40)
-    Title.Position = UDim2.new(0, 0, 0, 0)
-    Title.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
-    Title.TextColor3 = Color3.fromRGB(0, 200, 255)
-    Title.Font = Enum.Font.GothamBold
-    Title.TextSize = 18
-    Title.Parent = MainFrame
-    
-    -- Title Corner
+
+    -- Title Bar
+    local TitleBar = Instance.new("Frame")
+    TitleBar.Size = UDim2.new(1, 0, 0, 40)
+    TitleBar.BackgroundColor3 = Color3.fromRGB(35, 35, 45)
+    TitleBar.BorderSizePixel = 0
+    TitleBar.Parent = MainFrame
+
     local TitleCorner = Instance.new("UICorner")
-    TitleCorner.CornerRadius = UDim.new(0, 10)
-    TitleCorner.Parent = Title
-    
+    TitleCorner.CornerRadius = UDim.new(0, 8)
+    TitleCorner.Parent = TitleBar
+
+    local TitleText = Instance.new("TextLabel")
+    TitleText.Text = "BoostFPSHub v2.1.1"
+    TitleText.Size = UDim2.new(1, -40, 1, 0)
+    TitleText.Position = UDim2.new(0, 10, 0, 0)
+    TitleText.BackgroundTransparency = 1
+    TitleText.TextColor3 = Color3.fromRGB(0, 200, 255)
+    TitleText.Font = Enum.Font.GothamBold
+    TitleText.TextSize = 16
+    TitleText.TextXAlignment = Enum.TextXAlignment.Left
+    TitleText.Parent = TitleBar
+
     -- Close Button
     local CloseButton = Instance.new("TextButton")
     CloseButton.Text = "X"
@@ -59,56 +123,97 @@ local function CreateSimpleUI()
     CloseButton.BackgroundColor3 = Color3.fromRGB(255, 60, 60)
     CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
     CloseButton.Font = Enum.Font.GothamBold
-    CloseButton.TextSize = 16
-    CloseButton.Parent = Title
+    CloseButton.TextSize = 14
+    CloseButton.Parent = TitleBar
+
+    -- Tabs
+    local TabsContainer = Instance.new("Frame")
+    TabsContainer.Size = UDim2.new(1, -20, 0, 30)
+    TabsContainer.Position = UDim2.new(0, 10, 0, 50)
+    TabsContainer.BackgroundTransparency = 1
+    TabsContainer.Parent = MainFrame
+
+    local TabsList = Instance.new("UIListLayout")
+    TabsList.FillDirection = Enum.FillDirection.Horizontal
+    TabsList.Padding = UDim.new(0, 5)
+    TabsList.Parent = TabsContainer
+
+    -- Tab Buttons
+    local Tabs = {}
+    local TabButtons = {}
+
+    local function CreateTab(name)
+        local TabButton = Instance.new("TextButton")
+        TabButton.Text = name
+        TabButton.Size = UDim2.new(0, 80, 1, 0)
+        TabButton.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+        TabButton.TextColor3 = Color3.fromRGB(200, 200, 200)
+        TabButton.Font = Enum.Font.Gotham
+        TabButton.TextSize = 12
+        TabButton.Parent = TabsContainer
+        
+        local TabFrame = Instance.new("ScrollingFrame")
+        TabFrame.Size = UDim2.new(1, -20, 1, -100)
+        TabFrame.Position = UDim2.new(0, 10, 0, 90)
+        TabFrame.BackgroundTransparency = 1
+        TabFrame.BorderSizePixel = 0
+        TabFrame.ScrollBarThickness = 4
+        TabFrame.Visible = false
+        TabFrame.Parent = MainFrame
+        
+        local TabList = Instance.new("UIListLayout")
+        TabList.Padding = UDim.new(0, 10)
+        TabList.Parent = TabFrame
+        
+        Tabs[name] = TabFrame
+        TabButtons[name] = TabButton
+        
+        TabButton.MouseButton1Click:Connect(function()
+            for tabName, tabFrame in pairs(Tabs) do
+                tabFrame.Visible = false
+                TabButtons[tabName].BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+            end
+            TabFrame.Visible = true
+            TabButton.BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+        end)
+        
+        return TabFrame
+    end
+
+    -- Create tabs
+    local MainTab = CreateTab("Main")
+    local BFTab = CreateTab("Blox Fruit")
+    local SettingsTab = CreateTab("Settings")
     
-    CloseButton.MouseButton1Click:Connect(function()
-        ScreenGui:Destroy()
-    end)
-    
+    -- Activate first tab
+    TabButtons["Main"].BackgroundColor3 = Color3.fromRGB(0, 150, 255)
+    Tabs["Main"].Visible = true
+
     -- FPS Counter
     local FPSLabel = Instance.new("TextLabel")
     FPSLabel.Text = "FPS: --"
-    FPSLabel.Size = UDim2.new(1, -20, 0, 30)
-    FPSLabel.Position = UDim2.new(0, 10, 0, 50)
+    FPSLabel.Size = UDim2.new(0, 100, 0, 20)
+    FPSLabel.Position = UDim2.new(1, -110, 0, 50)
     FPSLabel.BackgroundTransparency = 1
-    FPSLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-    FPSLabel.Font = Enum.Font.Gotham
-    FPSLabel.TextSize = 16
-    FPSLabel.TextXAlignment = Enum.TextXAlignment.Left
+    FPSLabel.TextColor3 = Color3.fromRGB(0, 255, 100)
+    FPSLabel.Font = Enum.Font.GothamBold
+    FPSLabel.TextSize = 12
     FPSLabel.Parent = MainFrame
-    
-    -- Update FPS
+
     task.spawn(function()
         while ScreenGui and ScreenGui.Parent do
+            task.wait(0.5)
             local fps = math.floor(1 / RunService.RenderStepped:Wait())
             FPSLabel.Text = "FPS: " .. fps
-            task.wait(0.5)
         end
     end)
-    
-    -- Options Frame
-    local OptionsFrame = Instance.new("ScrollingFrame")
-    OptionsFrame.Size = UDim2.new(1, -20, 1, -100)
-    OptionsFrame.Position = UDim2.new(0, 10, 0, 90)
-    OptionsFrame.BackgroundTransparency = 1
-    OptionsFrame.BorderSizePixel = 0
-    OptionsFrame.ScrollBarThickness = 4
-    OptionsFrame.Parent = MainFrame
-    
-    local UIListLayout = Instance.new("UIListLayout")
-    UIListLayout.Padding = UDim.new(0, 10)
-    UIListLayout.Parent = OptionsFrame
-    
-    -- Store toggles state
-    local Toggles = {}
-    
+
     -- Function to create toggle
-    local function CreateToggle(text, default, callback)
+    local function CreateToggle(parent, text, default, callback)
         local ToggleFrame = Instance.new("Frame")
         ToggleFrame.Size = UDim2.new(1, 0, 0, 30)
         ToggleFrame.BackgroundTransparency = 1
-        ToggleFrame.Parent = OptionsFrame
+        ToggleFrame.Parent = parent
         
         local ToggleButton = Instance.new("TextButton")
         ToggleButton.Size = UDim2.new(0, 50, 0, 25)
@@ -141,35 +246,37 @@ local function CreateSimpleUI()
             end
         end)
         
-        Toggles[text] = ToggleButton
         return ToggleButton
     end
-    
-    -- ========== OPTIMIZATION FUNCTIONS ==========
-    
-    -- 1. Ultra Boost
-    CreateToggle("Ultra Boost FPS", true, function(state)
-        if state then
+
+    -- === MAIN TAB ===
+    -- Ultra Boost
+    CreateToggle(MainTab, "Ultra Boost FPS", true, function(value)
+        if value then
             settings().Rendering.QualityLevel = 1
             settings().Rendering.MeshPartDetailLevel = Enum.MeshPartDetailLevel.Level01
             Lighting.GlobalShadows = false
             Lighting.FogEnd = 9e9
         else
-            settings().Rendering.QualityLevel = 10
-            Lighting.GlobalShadows = true
+            settings().Rendering.QualityLevel = OriginalState.Global.QualityLevel
+            settings().Rendering.MeshPartDetailLevel = OriginalState.Global.MeshDetail
+            Lighting.GlobalShadows = OriginalState.Lighting.GlobalShadows
+            Lighting.FogEnd = OriginalState.Lighting.FogEnd
         end
     end)
-    
-    -- 2. Remove Particles
+
+    -- Remove Particles
     local particleTask
-    CreateToggle("Remove Particle Effects", true, function(state)
+    CreateToggle(MainTab, "Xóa Hiệu Ứng", true, function(value)
+        getgenv().BoostFPS.RemoveParticles = value
+        
         if particleTask then
             particleTask = nil
         end
         
-        if state then
+        if value then
             particleTask = task.spawn(function()
-                while particleTask do
+                while getgenv().BoostFPS.RemoveParticles do
                     task.wait(1)
                     for _, obj in pairs(Workspace:GetDescendants()) do
                         if obj:IsA("ParticleEmitter") or obj:IsA("Trail") then
@@ -186,91 +293,36 @@ local function CreateSimpleUI()
             end
         end
     end)
-    
-    -- 3. No Shadows
-    CreateToggle("Disable Shadows", true, function(state)
-        Lighting.GlobalShadows = not state
+
+    -- No Shadows
+    CreateToggle(MainTab, "Tắt Bóng Đổ", true, function(value)
+        Lighting.GlobalShadows = not value
     end)
-    
-    -- 4. Auto Clean Memory
+
+    -- Auto Clean
     local cleanTask
-    CreateToggle("Auto Clean Memory", true, function(state)
+    CreateToggle(MainTab, "Tự Động Dọn RAM", true, function(value)
+        getgenv().BoostFPS.AutoClean = value
+        
         if cleanTask then
             cleanTask = nil
         end
         
-        if state then
+        if value then
             cleanTask = task.spawn(function()
-                while cleanTask do
+                while getgenv().BoostFPS.AutoClean do
                     task.wait(30)
                     collectgarbage("collect")
                 end
             end)
         end
     end)
-    
-    -- 5. Blox Fruits Optimizations
-    local isBloxFruit = game.PlaceId == 2753915549 or game.PlaceId == 4442272183 or game.PlaceId == 7449423635
-    
-    if isBloxFruit then
-        -- Skill Effects
-        local skillTask
-        CreateToggle("BF: No Skill Effects", false, function(state)
-            if skillTask then
-                skillTask = nil
-            end
-            
-            if state then
-                skillTask = task.spawn(function()
-                    while skillTask do
-                        task.wait(1)
-                        pcall(function()
-                            if game:GetService("ReplicatedStorage"):FindFirstChild("Effect") then
-                                for _, effect in pairs(game:GetService("ReplicatedStorage").Effect.Container:GetDescendants()) do
-                                    if effect:IsA("ParticleEmitter") then
-                                        effect.Enabled = false
-                                    end
-                                end
-                            end
-                        end)
-                    end
-                end)
-            end
-        end)
-        
-        -- Fruit Effects
-        local fruitTask
-        CreateToggle("BF: No Fruit Effects", false, function(state)
-            if fruitTask then
-                fruitTask = nil
-            end
-            
-            if state then
-                fruitTask = task.spawn(function()
-                    while fruitTask do
-                        task.wait(2)
-                        pcall(function()
-                            for _, fruit in pairs(Workspace:GetChildren()) do
-                                if fruit:FindFirstChild("Handle") then
-                                    for _, effect in pairs(fruit.Handle:GetDescendants()) do
-                                        if effect:IsA("ParticleEmitter") then
-                                            effect.Enabled = false
-                                        end
-                                    end
-                                end
-                            end
-                        end)
-                    end
-                end)
-            end
-        end)
-    end
-    
-    -- 6. CPU Optimize (PC only)
+
+    -- CPU Optimize (PC only)
     if not UserInputService.TouchEnabled then
         local cpuConnections = {}
-        CreateToggle("CPU Optimization", true, function(state)
-            if state then
+        CreateToggle(MainTab, "Tối Ưu CPU", true, function(value)
+            if value then
                 local conn1 = UserInputService.WindowFocused:Connect(function()
                     RunService:SetFpsCap(999)
                 end)
@@ -290,67 +342,357 @@ local function CreateSimpleUI()
             end
         end)
     end
+
+    -- === BLOX FRUIT TAB ===
+    local isBloxFruit = game.PlaceId == 2753915549 or game.PlaceId == 4442272183 or game.PlaceId == 7449423635
     
-    -- 7. Mobile Optimizations
-    if UserInputService.TouchEnabled then
-        CreateToggle("Mobile: Battery Saver", true, function(state)
-            if state then
-                RunService:SetFpsCap(30)
-                Lighting.Brightness = 1.5
-            else
-                RunService:SetFpsCap(60)
-                Lighting.Brightness = 3
+    if isBloxFruit then
+        -- No Skill Effects
+        local skillTask
+        CreateToggle(BFTab, "Tắt Hiệu Ứng Skill", false, function(value)
+            getgenv().BoostFPS.BF_NoSkillEffects = value
+            
+            if skillTask then
+                skillTask = nil
+            end
+            
+            if value then
+                skillTask = task.spawn(function()
+                    while getgenv().BoostFPS.BF_NoSkillEffects do
+                        task.wait(1)
+                        pcall(function()
+                            if game:GetService("ReplicatedStorage"):FindFirstChild("Effect") then
+                                for _, effect in pairs(game:GetService("ReplicatedStorage").Effect.Container:GetDescendants()) do
+                                    if effect:IsA("ParticleEmitter") then
+                                        effect.Enabled = false
+                                    end
+                                end
+                            end
+                        end)
+                    end
+                end)
             end
         end)
+
+        -- No Fruit Effects
+        local fruitTask
+        CreateToggle(BFTab, "Tắt Hiệu Ứng Trái", false, function(value)
+            getgenv().BoostFPS.BF_NoFruitEffects = value
+            
+            if fruitTask then
+                fruitTask = nil
+            end
+            
+            if value then
+                fruitTask = task.spawn(function()
+                    while getgenv().BoostFPS.BF_NoFruitEffects do
+                        task.wait(2)
+                        pcall(function()
+                            for _, fruit in pairs(Workspace:GetChildren()) do
+                                if fruit:FindFirstChild("Handle") then
+                                    for _, effect in pairs(fruit.Handle:GetDescendants()) do
+                                        if effect:IsA("ParticleEmitter") then
+                                            effect.Enabled = false
+                                        end
+                                    end
+                                end
+                            end
+                        end)
+                    end
+                end)
+            end
+        end)
+
+        -- Reduce Water
+        CreateToggle(BFTab, "Giảm Hiệu Ứng Nước", false, function(value)
+            getgenv().BoostFPS.BF_ReduceWater = value
+            if value then
+                for _, part in pairs(Workspace:GetDescendants()) do
+                    if part:IsA("Part") and part.Name == "Water" then
+                        part.Transparency = 0.8
+                    end
+                end
+            else
+                for _, part in pairs(Workspace:GetDescendants()) do
+                    if part:IsA("Part") and part.Name == "Water" then
+                        part.Transparency = 0
+                    end
+                end
+            end
+        end)
+
+        -- Optimize Islands
+        local islandTask
+        CreateToggle(BFTab, "Tối Ưu Đảo", false, function(value)
+            getgenv().BoostFPS.BF_OptimizeIslands = value
+            
+            if islandTask then
+                islandTask = nil
+            end
+            
+            if value then
+                islandTask = task.spawn(function()
+                    while getgenv().BoostFPS.BF_OptimizeIslands do
+                        task.wait(5)
+                        pcall(function()
+                            for _, island in pairs(Workspace:GetChildren()) do
+                                if island:IsA("Model") and island:FindFirstChild("Terrain") then
+                                    island.Terrain.WaterTransparency = 0.9
+                                end
+                            end
+                        end)
+                    end
+                end)
+            else
+                for _, island in pairs(Workspace:GetChildren()) do
+                    if island:IsA("Model") and island:FindFirstChild("Terrain") then
+                        island.Terrain.WaterTransparency = 0
+                    end
+                end
+            end
+        end)
+
+        -- Reduce Players
+        local playerTask
+        CreateToggle(BFTab, "Giảm Hiệu Ứng Người Chơi", false, function(value)
+            getgenv().BoostFPS.BF_ReducePlayers = value
+            
+            if playerTask then
+                playerTask = nil
+            end
+            
+            if value then
+                playerTask = task.spawn(function()
+                    while getgenv().BoostFPS.BF_ReducePlayers do
+                        task.wait(2)
+                        pcall(function()
+                            for _, player in pairs(Players:GetPlayers()) do
+                                if player.Character then
+                                    for _, part in pairs(player.Character:GetDescendants()) do
+                                        if part:IsA("ParticleEmitter") then
+                                            part.Enabled = false
+                                        end
+                                    end
+                                end
+                            end
+                        end)
+                    end
+                end)
+            end
+        end)
+
+        -- LOCAL LOAD SYSTEM (FIXED)
+        local localLoadTask
+        CreateToggle(BFTab, "Load Xung Quanh Người Chơi", false, function(value)
+            getgenv().BoostFPS.BF_LocalLoad = value
+            
+            if localLoadTask then
+                localLoadTask = nil
+            end
+            
+            if value then
+                localLoadTask = task.spawn(function()
+                    local radius = 300
+                    local originalStates = {}
+                    
+                    -- Lưu trạng thái gốc
+                    for _, island in pairs(Workspace:GetChildren()) do
+                        if island:IsA("Model") and island:FindFirstChild("Terrain") then
+                            originalStates[island.Name] = {
+                                Parent = island.Parent,
+                                Transparency = {}
+                            }
+                            for _, part in pairs(island:GetDescendants()) do
+                                if part:IsA("BasePart") then
+                                    originalStates[island.Name].Transparency[part] = part.Transparency
+                                end
+                            end
+                        end
+                    end
+                    
+                    while getgenv().BoostFPS.BF_LocalLoad do
+                        task.wait(0.5)
+                        pcall(function()
+                            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                                local hrp = LocalPlayer.Character.HumanoidRootPart.Position
+                                
+                                for _, island in pairs(Workspace:GetChildren()) do
+                                    if island:IsA("Model") and island:FindFirstChild("Terrain") then
+                                        local islandPos
+                                        if island:FindFirstChild("PrimaryPart") then
+                                            islandPos = island.PrimaryPart.Position
+                                        else
+                                            islandPos = island:GetModelCFrame().Position
+                                        end
+                                        
+                                        local distance = (islandPos - hrp).Magnitude
+                                        
+                                        if distance <= radius then
+                                            if not island.Parent then
+                                                island.Parent = Workspace
+                                            end
+                                            
+                                            if distance > 150 then
+                                                for _, part in pairs(island:GetDescendants()) do
+                                                    if part:IsA("BasePart") then
+                                                        part.Material = Enum.Material.Plastic
+                                                        part.Transparency = math.clamp((distance-150)/150, 0, 0.8)
+                                                    end
+                                                end
+                                            else
+                                                for _, part in pairs(island:GetDescendants()) do
+                                                    if part:IsA("BasePart") then
+                                                        part.Material = Enum.Material.SmoothPlastic
+                                                        part.Transparency = 0
+                                                    end
+                                                end
+                                            end
+                                        else
+                                            island.Parent = nil
+                                        end
+                                    end
+                                end
+                            end
+                        end)
+                    end
+                    
+                    -- Khôi phục
+                    for islandName, state in pairs(originalStates) do
+                        local island = Workspace:FindFirstChild(islandName)
+                        if island then
+                            island.Parent = Workspace
+                            for part, transparency in pairs(state.Transparency) do
+                                if part and part.Parent then
+                                    part.Transparency = transparency
+                                    part.Material = Enum.Material.SmoothPlastic
+                                end
+                            end
+                        end
+                    end
+                end)
+            else
+                -- Khôi phục tất cả đảo
+                pcall(function()
+                    for _, island in pairs(Workspace:GetChildren()) do
+                        if island:IsA("Model") and island:FindFirstChild("Terrain") then
+                            island.Parent = Workspace
+                            for _, part in pairs(island:GetDescendants()) do
+                                if part:IsA("BasePart") then
+                                    part.Material = Enum.Material.SmoothPlastic
+                                    part.Transparency = 0
+                                end
+                            end
+                        end
+                    end
+                end)
+            end
+        end)
+
+    else
+        -- Nếu không phải Blox Fruit
+        local Label = Instance.new("TextLabel")
+        Label.Text = "Không phải game Blox Fruit"
+        Label.Size = UDim2.new(1, 0, 0, 30)
+        Label.BackgroundTransparency = 1
+        Label.TextColor3 = Color3.fromRGB(255, 100, 100)
+        Label.Font = Enum.Font.Gotham
+        Label.TextSize = 14
+        Label.Parent = BFTab
     end
-    
+
+    -- === SETTINGS TAB ===
     -- Restore Button
     local RestoreButton = Instance.new("TextButton")
-    RestoreButton.Text = "🔄 Restore Default Settings"
-    RestoreButton.Size = UDim2.new(1, -20, 0, 40)
-    RestoreButton.Position = UDim2.new(0, 10, 1, -50)
+    RestoreButton.Text = "Khôi Phục Gốc"
+    RestoreButton.Size = UDim2.new(1, 0, 0, 40)
+    RestoreButton.Position = UDim2.new(0, 0, 0, 10)
     RestoreButton.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
     RestoreButton.TextColor3 = Color3.fromRGB(255, 255, 255)
     RestoreButton.Font = Enum.Font.Gotham
     RestoreButton.TextSize = 14
-    RestoreButton.Parent = MainFrame
+    RestoreButton.Parent = SettingsTab
     
     RestoreButton.MouseButton1Click:Connect(function()
-        -- Restore graphics
-        settings().Rendering.QualityLevel = 10
-        settings().Rendering.MeshPartDetailLevel = Enum.MeshPartDetailLevel.Level20
-        Lighting.GlobalShadows = true
-        Lighting.FogEnd = 100000
-        Lighting.Brightness = 2
-        
-        -- Stop all tasks
+        -- Dừng tasks
         particleTask = nil
         cleanTask = nil
         skillTask = nil
         fruitTask = nil
+        islandTask = nil
+        playerTask = nil
+        localLoadTask = nil
         
-        -- Enable all particles
+        -- Khôi phục lighting
+        Lighting.GlobalShadows = OriginalState.Lighting.GlobalShadows
+        Lighting.FogEnd = OriginalState.Lighting.FogEnd
+        Lighting.Brightness = OriginalState.Lighting.Brightness
+        Lighting.Technology = OriginalState.Lighting.Technology
+        
+        -- Khôi phục settings
+        settings().Rendering.QualityLevel = OriginalState.Global.QualityLevel
+        settings().Rendering.MeshPartDetailLevel = OriginalState.Global.MeshDetail
+        
+        -- Bật lại hiệu ứng
         for _, obj in pairs(Workspace:GetDescendants()) do
             if obj:IsA("ParticleEmitter") or obj:IsA("Trail") then
                 obj.Enabled = true
             end
         end
         
-        -- Set FPS cap
-        RunService:SetFpsCap(60)
-        
-        -- Reset toggle buttons
-        for _, toggle in pairs(Toggles) do
-            toggle.Text = "OFF"
-            toggle.BackgroundColor3 = Color3.fromRGB(100, 100, 100)
+        -- Khôi phục nước
+        for _, part in pairs(Workspace:GetDescendants()) do
+            if part:IsA("Part") and part.Name == "Water" then
+                part.Transparency = 0
+            end
         end
+        
+        -- Khôi phục đảo
+        for _, island in pairs(Workspace:GetChildren()) do
+            if island:IsA("Model") and island:FindFirstChild("Terrain") then
+                island.Parent = Workspace
+                island.Terrain.WaterTransparency = 0
+                for _, part in pairs(island:GetDescendants()) do
+                    if part:IsA("BasePart") then
+                        part.Material = Enum.Material.SmoothPlastic
+                        part.Transparency = 0
+                    end
+                end
+            end
+        end
+        
+        -- Thông báo
+        local Notif = Instance.new("ScreenGui")
+        Notif.Parent = game:GetService("CoreGui")
+        
+        local NotifFrame = Instance.new("Frame")
+        NotifFrame.Size = UDim2.new(0, 200, 0, 50)
+        NotifFrame.Position = UDim2.new(0.5, -100, 0, 20)
+        NotifFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
+        NotifFrame.Parent = Notif
+        
+        local NotifText = Instance.new("TextLabel")
+        NotifText.Text = "Đã khôi phục cài đặt gốc!"
+        NotifText.Size = UDim2.new(1, 0, 1, 0)
+        NotifText.BackgroundTransparency = 1
+        NotifText.TextColor3 = Color3.fromRGB(0, 255, 100)
+        NotifText.Font = Enum.Font.Gotham
+        NotifText.TextSize = 14
+        NotifText.Parent = NotifFrame
+        
+        task.wait(3)
+        Notif:Destroy()
     end)
-    
-    -- Make draggable
+
+    -- Close UI Button
+    CloseButton.MouseButton1Click:Connect(function()
+        ScreenGui:Destroy()
+    end)
+
+    -- Draggable
     local dragging = false
     local dragInput, dragStart, startPos
     
-    Title.InputBegan:Connect(function(input)
+    TitleBar.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             dragging = true
             dragStart = input.Position
@@ -364,7 +706,7 @@ local function CreateSimpleUI()
         end
     end)
     
-    Title.InputChanged:Connect(function(input)
+    TitleBar.InputChanged:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseMovement then
             dragInput = input
         end
@@ -373,100 +715,47 @@ local function CreateSimpleUI()
     UserInputService.InputChanged:Connect(function(input)
         if input == dragInput and dragging then
             local delta = input.Position - dragStart
-            MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, 
-                                          startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+            MainFrame.Position = UDim2.new(
+                startPos.X.Scale, startPos.X.Offset + delta.X,
+                startPos.Y.Scale, startPos.Y.Offset + delta.Y
+            )
         end
     end)
-    
-    -- Hide/show with key (Right Control)
-    local hidden = false
+
+    -- Hide/Show with Right Control
     UserInputService.InputBegan:Connect(function(input, processed)
         if not processed and input.KeyCode == Enum.KeyCode.RightControl then
-            hidden = not hidden
-            MainFrame.Visible = not hidden
+            MainFrame.Visible = not MainFrame.Visible
         end
     end)
-    
+
     return ScreenGui
 end
 
--- ========== INITIAL OPTIMIZATIONS ==========
--- Apply basic optimizations on start
-task.spawn(function()
-    settings().Rendering.QualityLevel = 1
-    settings().Rendering.MeshPartDetailLevel = Enum.MeshPartDetailLevel.Level01
-    Lighting.GlobalShadows = false
-    Lighting.FogEnd = 9e9
-    
-    -- Mobile specific
-    if UserInputService.TouchEnabled then
-        RunService:SetFpsCap(30)
-        Lighting.Brightness = 1.5
-    else
-        RunService:SetFpsCap(999)
-    end
-end)
+-- === 4. INITIAL OPTIMIZATIONS ===
+-- Áp dụng cài đặt mặc định
+settings().Rendering.QualityLevel = 1
+settings().Rendering.MeshPartDetailLevel = Enum.MeshPartDetailLevel.Level01
+Lighting.GlobalShadows = false
+Lighting.FogEnd = 9e9
 
--- ========== MAIN EXECUTION ==========
--- Try to create UI with error handling
+-- Mobile optimizations
+if UserInputService.TouchEnabled then
+    RunService:SetFpsCap(30)
+    Lighting.Brightness = 1.5
+else
+    RunService:SetFpsCap(999)
+end
+
+-- === 5. CREATE UI ===
 local success, err = pcall(function()
     local ui = CreateSimpleUI()
     
     -- Success notification
     task.wait(1)
-    
-    -- Create notification
-    local Notif = Instance.new("ScreenGui")
-    Notif.Name = "Notification"
-    Notif.Parent = game:GetService("CoreGui")
-    Notif.ResetOnSpawn = false
-    
-    local NotifFrame = Instance.new("Frame")
-    NotifFrame.Size = UDim2.new(0, 250, 0, 60)
-    NotifFrame.Position = UDim2.new(0.5, -125, 0, 20)
-    NotifFrame.BackgroundColor3 = Color3.fromRGB(30, 30, 40)
-    NotifFrame.BorderSizePixel = 0
-    NotifFrame.Parent = Notif
-    
-    local NotifCorner = Instance.new("UICorner")
-    NotifCorner.CornerRadius = UDim.new(0, 8)
-    NotifCorner.Parent = NotifFrame
-    
-    local NotifText = Instance.new("TextLabel")
-    NotifText.Text = "✅ BoostFPSHub v8.0 Loaded!\nPress Right Ctrl to hide/show"
-    NotifText.Size = UDim2.new(1, 0, 1, 0)
-    NotifText.BackgroundTransparency = 1
-    NotifText.TextColor3 = Color3.fromRGB(0, 200, 255)
-    NotifText.Font = Enum.Font.Gotham
-    NotifText.TextSize = 14
-    NotifText.TextWrapped = true
-    NotifText.Parent = NotifFrame
-    
-    -- Auto remove notification
-    task.delay(5, function()
-        Notif:Destroy()
-    end)
-end)
+    print("BoostFPSHub v2.1.1 loaded successfully!")
 
 if not success then
-    -- Simple fallback if UI fails
-    warn("[BoostFPSHub] Using fallback optimizations only")
-    
-    -- Apply optimizations anyway
-    settings().Rendering.QualityLevel = 1
-    Lighting.GlobalShadows = false
-    Lighting.FogEnd = 9e9
+    warn("[BoostFPSHub] UI Creation Error:", err)
+    warn("Applying optimizations only...")
 end
-
--- Simple FPS counter in console
-task.spawn(function()
-    while task.wait(2) do
-        local fps = math.floor(1 / RunService.RenderStepped:Wait())
-        print("[FPS Booster] Current FPS:", fps)
-    end
-end)
-
-print("🎯 BoostFPSHub v8.0 - Delta Fixed Edition")
-print("✅ Script loaded successfully!")
-print("📱 Mobile Support:", UserInputService.TouchEnabled and "Yes" or "No")
-print("🎮 Press Right Ctrl to toggle UI")
