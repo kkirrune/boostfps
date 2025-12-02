@@ -1,6 +1,6 @@
 -- BoostFPSHub v2.1.1 — Tối Ưu FPS Roblox
 -- Language: Vietnamese
--- Fixed for Delta Executor
+-- Fixed for Delta Executor - ĐÃ SỬA LỖI HOÀN CHỈNH
 
 -- === 0. KHỞI TẠO BIẾN TOÀN CỤC ===
 getgenv().BoostFPS = {
@@ -13,6 +13,9 @@ getgenv().BoostFPS = {
     BF_ReduceWater = false,
     BF_OptimizeIslands = false
 }
+
+-- Lưu trữ các task đang chạy
+local ActiveTasks = {}
 
 -- === 1. LOADING SCREEN ===
 local function ShowLoadingScreen()
@@ -45,8 +48,6 @@ local function ShowLoadingScreen()
     task.wait(1.5)
     ScreenGui:Destroy()
 end
-
-ShowLoadingScreen()
 
 -- === 2. KHỞI TẠO ===
 if not game:IsLoaded() then game.Loaded:Wait() end
@@ -200,13 +201,19 @@ local function CreateSimpleUI()
     FPSLabel.TextSize = 12
     FPSLabel.Parent = MainFrame
 
-    task.spawn(function()
+    -- Update FPS Counter
+    local fpsUpdateTask = task.spawn(function()
         while ScreenGui and ScreenGui.Parent do
             task.wait(0.5)
-            local fps = math.floor(1 / RunService.RenderStepped:Wait())
-            FPSLabel.Text = "FPS: " .. fps
+            local success, fps = pcall(function()
+                return math.floor(1 / RunService.RenderStepped:Wait())
+            end)
+            if success then
+                FPSLabel.Text = "FPS: " .. fps
+            end
         end
     end)
+    table.insert(ActiveTasks, fpsUpdateTask)
 
     -- Function to create toggle
     local function CreateToggle(parent, text, default, callback)
@@ -252,64 +259,72 @@ local function CreateSimpleUI()
     -- === MAIN TAB ===
     -- Ultra Boost
     CreateToggle(MainTab, "Ultra Boost FPS", true, function(value)
-        if value then
-            settings().Rendering.QualityLevel = 1
-            settings().Rendering.MeshPartDetailLevel = Enum.MeshPartDetailLevel.Level01
-            Lighting.GlobalShadows = false
-            Lighting.FogEnd = 9e9
-        else
-            settings().Rendering.QualityLevel = OriginalState.Global.QualityLevel
-            settings().Rendering.MeshPartDetailLevel = OriginalState.Global.MeshDetail
-            Lighting.GlobalShadows = OriginalState.Lighting.GlobalShadows
-            Lighting.FogEnd = OriginalState.Lighting.FogEnd
-        end
+        pcall(function()
+            if value then
+                settings().Rendering.QualityLevel = 1
+                settings().Rendering.MeshPartDetailLevel = Enum.MeshPartDetailLevel.Level01
+                Lighting.GlobalShadows = false
+                Lighting.FogEnd = 9e9
+            else
+                settings().Rendering.QualityLevel = OriginalState.Global.QualityLevel
+                settings().Rendering.MeshPartDetailLevel = OriginalState.Global.MeshDetail
+                Lighting.GlobalShadows = OriginalState.Lighting.GlobalShadows
+                Lighting.FogEnd = OriginalState.Lighting.FogEnd
+            end
+        end)
     end)
 
     -- Remove Particles
-    local particleTask
     CreateToggle(MainTab, "Xóa Hiệu Ứng", true, function(value)
         getgenv().BoostFPS.RemoveParticles = value
         
-        if particleTask then
-            particleTask = nil
+        if ActiveTasks["particleTask"] then
+            ActiveTasks["particleTask"] = nil
         end
         
         if value then
-            particleTask = task.spawn(function()
+            local taskId = "particleTask"
+            ActiveTasks[taskId] = task.spawn(function()
                 while getgenv().BoostFPS.RemoveParticles do
                     task.wait(1)
-                    for _, obj in pairs(Workspace:GetDescendants()) do
-                        if obj:IsA("ParticleEmitter") or obj:IsA("Trail") then
-                            obj.Enabled = false
+                    pcall(function()
+                        for _, obj in pairs(Workspace:GetDescendants()) do
+                            if obj:IsA("ParticleEmitter") or obj:IsA("Trail") then
+                                obj.Enabled = false
+                            end
                         end
-                    end
+                    end)
                 end
             end)
         else
-            for _, obj in pairs(Workspace:GetDescendants()) do
-                if obj:IsA("ParticleEmitter") or obj:IsA("Trail") then
-                    obj.Enabled = true
+            pcall(function()
+                for _, obj in pairs(Workspace:GetDescendants()) do
+                    if obj:IsA("ParticleEmitter") or obj:IsA("Trail") then
+                        obj.Enabled = true
+                    end
                 end
-            end
+            end)
         end
     end)
 
     -- No Shadows
     CreateToggle(MainTab, "Tắt Bóng Đổ", true, function(value)
-        Lighting.GlobalShadows = not value
+        pcall(function()
+            Lighting.GlobalShadows = not value
+        end)
     end)
 
     -- Auto Clean
-    local cleanTask
     CreateToggle(MainTab, "Tự Động Dọn RAM", true, function(value)
         getgenv().BoostFPS.AutoClean = value
         
-        if cleanTask then
-            cleanTask = nil
+        if ActiveTasks["cleanTask"] then
+            ActiveTasks["cleanTask"] = nil
         end
         
         if value then
-            cleanTask = task.spawn(function()
+            local taskId = "cleanTask"
+            ActiveTasks[taskId] = task.spawn(function()
                 while getgenv().BoostFPS.AutoClean do
                     task.wait(30)
                     collectgarbage("collect")
@@ -323,19 +338,20 @@ local function CreateSimpleUI()
         local cpuConnections = {}
         CreateToggle(MainTab, "Tối Ưu CPU", true, function(value)
             if value then
-                local conn1 = UserInputService.WindowFocused:Connect(function()
-                    RunService:SetFpsCap(999)
+                pcall(function()
+                    local conn1 = UserInputService.WindowFocused:Connect(function()
+                        RunService:SetFpsCap(999)
+                    end)
+                    
+                    local conn2 = UserInputService.WindowFocusReleased:Connect(function()
+                        RunService:SetFpsCap(30)
+                    end)
+                    
+                    cpuConnections = {conn1, conn2}
                 end)
-                
-                local conn2 = UserInputService.WindowFocusReleased:Connect(function()
-                    RunService:SetFpsCap(30)
-                end)
-                
-                table.insert(cpuConnections, conn1)
-                table.insert(cpuConnections, conn2)
             else
                 for _, conn in pairs(cpuConnections) do
-                    conn:Disconnect()
+                    pcall(function() conn:Disconnect() end)
                 end
                 cpuConnections = {}
                 RunService:SetFpsCap(999)
@@ -348,16 +364,16 @@ local function CreateSimpleUI()
     
     if isBloxFruit then
         -- No Skill Effects
-        local skillTask
         CreateToggle(BFTab, "Tắt Hiệu Ứng Skill", false, function(value)
             getgenv().BoostFPS.BF_NoSkillEffects = value
             
-            if skillTask then
-                skillTask = nil
+            if ActiveTasks["skillTask"] then
+                ActiveTasks["skillTask"] = nil
             end
             
             if value then
-                skillTask = task.spawn(function()
+                local taskId = "skillTask"
+                ActiveTasks[taskId] = task.spawn(function()
                     while getgenv().BoostFPS.BF_NoSkillEffects do
                         task.wait(1)
                         pcall(function()
@@ -375,16 +391,16 @@ local function CreateSimpleUI()
         end)
 
         -- No Fruit Effects
-        local fruitTask
         CreateToggle(BFTab, "Tắt Hiệu Ứng Trái", false, function(value)
             getgenv().BoostFPS.BF_NoFruitEffects = value
             
-            if fruitTask then
-                fruitTask = nil
+            if ActiveTasks["fruitTask"] then
+                ActiveTasks["fruitTask"] = nil
             end
             
             if value then
-                fruitTask = task.spawn(function()
+                local taskId = "fruitTask"
+                ActiveTasks[taskId] = task.spawn(function()
                     while getgenv().BoostFPS.BF_NoFruitEffects do
                         task.wait(2)
                         pcall(function()
@@ -407,31 +423,35 @@ local function CreateSimpleUI()
         CreateToggle(BFTab, "Giảm Hiệu Ứng Nước", false, function(value)
             getgenv().BoostFPS.BF_ReduceWater = value
             if value then
-                for _, part in pairs(Workspace:GetDescendants()) do
-                    if part:IsA("Part") and part.Name == "Water" then
-                        part.Transparency = 0.8
+                pcall(function()
+                    for _, part in pairs(Workspace:GetDescendants()) do
+                        if part:IsA("Part") and part.Name == "Water" then
+                            part.Transparency = 0.8
+                        end
                     end
-                end
+                end)
             else
-                for _, part in pairs(Workspace:GetDescendants()) do
-                    if part:IsA("Part") and part.Name == "Water" then
-                        part.Transparency = 0
+                pcall(function()
+                    for _, part in pairs(Workspace:GetDescendants()) do
+                        if part:IsA("Part") and part.Name == "Water" then
+                            part.Transparency = 0
+                        end
                     end
-                end
+                end)
             end
         end)
 
         -- Optimize Islands
-        local islandTask
         CreateToggle(BFTab, "Tối Ưu Đảo", false, function(value)
             getgenv().BoostFPS.BF_OptimizeIslands = value
             
-            if islandTask then
-                islandTask = nil
+            if ActiveTasks["islandTask"] then
+                ActiveTasks["islandTask"] = nil
             end
             
             if value then
-                islandTask = task.spawn(function()
+                local taskId = "islandTask"
+                ActiveTasks[taskId] = task.spawn(function()
                     while getgenv().BoostFPS.BF_OptimizeIslands do
                         task.wait(5)
                         pcall(function()
@@ -444,25 +464,27 @@ local function CreateSimpleUI()
                     end
                 end)
             else
-                for _, island in pairs(Workspace:GetChildren()) do
-                    if island:IsA("Model") and island:FindFirstChild("Terrain") then
-                        island.Terrain.WaterTransparency = 0
+                pcall(function()
+                    for _, island in pairs(Workspace:GetChildren()) do
+                        if island:IsA("Model") and island:FindFirstChild("Terrain") then
+                            island.Terrain.WaterTransparency = 0
+                        end
                     end
-                end
+                end)
             end
         end)
 
         -- Reduce Players
-        local playerTask
         CreateToggle(BFTab, "Giảm Hiệu Ứng Người Chơi", false, function(value)
             getgenv().BoostFPS.BF_ReducePlayers = value
             
-            if playerTask then
-                playerTask = nil
+            if ActiveTasks["playerTask"] then
+                ActiveTasks["playerTask"] = nil
             end
             
             if value then
-                playerTask = task.spawn(function()
+                local taskId = "playerTask"
+                ActiveTasks[taskId] = task.spawn(function()
                     while getgenv().BoostFPS.BF_ReducePlayers do
                         task.wait(2)
                         pcall(function()
@@ -482,33 +504,35 @@ local function CreateSimpleUI()
         end)
 
         -- LOCAL LOAD SYSTEM (FIXED)
-        local localLoadTask
         CreateToggle(BFTab, "Load Xung Quanh Người Chơi", false, function(value)
             getgenv().BoostFPS.BF_LocalLoad = value
             
-            if localLoadTask then
-                localLoadTask = nil
+            if ActiveTasks["localLoadTask"] then
+                ActiveTasks["localLoadTask"] = nil
             end
             
             if value then
-                localLoadTask = task.spawn(function()
+                local taskId = "localLoadTask"
+                ActiveTasks[taskId] = task.spawn(function()
                     local radius = 300
                     local originalStates = {}
                     
                     -- Lưu trạng thái gốc
-                    for _, island in pairs(Workspace:GetChildren()) do
-                        if island:IsA("Model") and island:FindFirstChild("Terrain") then
-                            originalStates[island.Name] = {
-                                Parent = island.Parent,
-                                Transparency = {}
-                            }
-                            for _, part in pairs(island:GetDescendants()) do
-                                if part:IsA("BasePart") then
-                                    originalStates[island.Name].Transparency[part] = part.Transparency
+                    pcall(function()
+                        for _, island in pairs(Workspace:GetChildren()) do
+                            if island:IsA("Model") and island:FindFirstChild("Terrain") then
+                                originalStates[island.Name] = {
+                                    Parent = island.Parent,
+                                    Transparency = {}
+                                }
+                                for _, part in pairs(island:GetDescendants()) do
+                                    if part:IsA("BasePart") then
+                                        originalStates[island.Name].Transparency[part] = part.Transparency
+                                    end
                                 end
                             end
                         end
-                    end
+                    end)
                     
                     while getgenv().BoostFPS.BF_LocalLoad do
                         task.wait(0.5)
@@ -518,12 +542,7 @@ local function CreateSimpleUI()
                                 
                                 for _, island in pairs(Workspace:GetChildren()) do
                                     if island:IsA("Model") and island:FindFirstChild("Terrain") then
-                                        local islandPos
-                                        if island:FindFirstChild("PrimaryPart") then
-                                            islandPos = island.PrimaryPart.Position
-                                        else
-                                            islandPos = island:GetModelCFrame().Position
-                                        end
+                                        local islandPos = island:GetPivot().Position
                                         
                                         local distance = (islandPos - hrp).Magnitude
                                         
@@ -557,18 +576,20 @@ local function CreateSimpleUI()
                     end
                     
                     -- Khôi phục
-                    for islandName, state in pairs(originalStates) do
-                        local island = Workspace:FindFirstChild(islandName)
-                        if island then
-                            island.Parent = Workspace
-                            for part, transparency in pairs(state.Transparency) do
-                                if part and part.Parent then
-                                    part.Transparency = transparency
-                                    part.Material = Enum.Material.SmoothPlastic
+                    pcall(function()
+                        for islandName, state in pairs(originalStates) do
+                            local island = Workspace:FindFirstChild(islandName)
+                            if island then
+                                island.Parent = Workspace
+                                for part, transparency in pairs(state.Transparency) do
+                                    if part and part.Parent then
+                                        part.Transparency = transparency
+                                        part.Material = Enum.Material.SmoothPlastic
+                                    end
                                 end
                             end
                         end
-                    end
+                    end)
                 end)
             else
                 -- Khôi phục tất cả đảo
@@ -613,52 +634,50 @@ local function CreateSimpleUI()
     RestoreButton.Parent = SettingsTab
     
     RestoreButton.MouseButton1Click:Connect(function()
-        -- Dừng tasks
-        particleTask = nil
-        cleanTask = nil
-        skillTask = nil
-        fruitTask = nil
-        islandTask = nil
-        playerTask = nil
-        localLoadTask = nil
+        -- Dừng tất cả tasks
+        for taskId, _ in pairs(ActiveTasks) do
+            ActiveTasks[taskId] = nil
+        end
         
         -- Khôi phục lighting
-        Lighting.GlobalShadows = OriginalState.Lighting.GlobalShadows
-        Lighting.FogEnd = OriginalState.Lighting.FogEnd
-        Lighting.Brightness = OriginalState.Lighting.Brightness
-        Lighting.Technology = OriginalState.Lighting.Technology
-        
-        -- Khôi phục settings
-        settings().Rendering.QualityLevel = OriginalState.Global.QualityLevel
-        settings().Rendering.MeshPartDetailLevel = OriginalState.Global.MeshDetail
-        
-        -- Bật lại hiệu ứng
-        for _, obj in pairs(Workspace:GetDescendants()) do
-            if obj:IsA("ParticleEmitter") or obj:IsA("Trail") then
-                obj.Enabled = true
+        pcall(function()
+            Lighting.GlobalShadows = OriginalState.Lighting.GlobalShadows
+            Lighting.FogEnd = OriginalState.Lighting.FogEnd
+            Lighting.Brightness = OriginalState.Lighting.Brightness
+            Lighting.Technology = OriginalState.Lighting.Technology
+            
+            -- Khôi phục settings
+            settings().Rendering.QualityLevel = OriginalState.Global.QualityLevel
+            settings().Rendering.MeshPartDetailLevel = OriginalState.Global.MeshDetail
+            
+            -- Bật lại hiệu ứng
+            for _, obj in pairs(Workspace:GetDescendants()) do
+                if obj:IsA("ParticleEmitter") or obj:IsA("Trail") then
+                    obj.Enabled = true
+                end
             end
-        end
-        
-        -- Khôi phục nước
-        for _, part in pairs(Workspace:GetDescendants()) do
-            if part:IsA("Part") and part.Name == "Water" then
-                part.Transparency = 0
+            
+            -- Khôi phục nước
+            for _, part in pairs(Workspace:GetDescendants()) do
+                if part:IsA("Part") and part.Name == "Water" then
+                    part.Transparency = 0
+                end
             end
-        end
-        
-        -- Khôi phục đảo
-        for _, island in pairs(Workspace:GetChildren()) do
-            if island:IsA("Model") and island:FindFirstChild("Terrain") then
-                island.Parent = Workspace
-                island.Terrain.WaterTransparency = 0
-                for _, part in pairs(island:GetDescendants()) do
-                    if part:IsA("BasePart") then
-                        part.Material = Enum.Material.SmoothPlastic
-                        part.Transparency = 0
+            
+            -- Khôi phục đảo
+            for _, island in pairs(Workspace:GetChildren()) do
+                if island:IsA("Model") and island:FindFirstChild("Terrain") then
+                    island.Parent = Workspace
+                    island.Terrain.WaterTransparency = 0
+                    for _, part in pairs(island:GetDescendants()) do
+                        if part:IsA("BasePart") then
+                            part.Material = Enum.Material.SmoothPlastic
+                            part.Transparency = 0
+                        end
                     end
                 end
             end
-        end
+        end)
         
         -- Thông báo
         local Notif = Instance.new("ScreenGui")
@@ -685,6 +704,10 @@ local function CreateSimpleUI()
 
     -- Close UI Button
     CloseButton.MouseButton1Click:Connect(function()
+        -- Dọn dẹp tasks trước khi đóng
+        for taskId, _ in pairs(ActiveTasks) do
+            ActiveTasks[taskId] = nil
+        end
         ScreenGui:Destroy()
     end)
 
@@ -734,28 +757,40 @@ end
 
 -- === 4. INITIAL OPTIMIZATIONS ===
 -- Áp dụng cài đặt mặc định
-settings().Rendering.QualityLevel = 1
-settings().Rendering.MeshPartDetailLevel = Enum.MeshPartDetailLevel.Level01
-Lighting.GlobalShadows = false
-Lighting.FogEnd = 9e9
-
--- Mobile optimizations
-if UserInputService.TouchEnabled then
-    RunService:SetFpsCap(30)
-    Lighting.Brightness = 1.5
-else
-    RunService:SetFpsCap(999)
-end
+pcall(function()
+    settings().Rendering.QualityLevel = 1
+    settings().Rendering.MeshPartDetailLevel = Enum.MeshPartDetailLevel.Level01
+    Lighting.GlobalShadows = false
+    Lighting.FogEnd = 9e9
+    
+    -- Mobile optimizations
+    if UserInputService.TouchEnabled then
+        RunService:SetFpsCap(30)
+        Lighting.Brightness = 1.5
+    else
+        RunService:SetFpsCap(999)
+    end
+end)
 
 -- === 5. CREATE UI ===
-local success, err = pcall(function()
-    local ui = CreateSimpleUI()
+local function Main()
+    ShowLoadingScreen()
     
-    -- Success notification
-    task.wait(1)
-    print("BoostFPSHub v2.1.1 loaded successfully!")
+    local success, err = pcall(function()
+        local ui = CreateSimpleUI()
+        
+        -- Success notification
+        task.wait(1)
+        print("BoostFPSHub v2.1.1 loaded successfully!")
+    
+    if not success then
+        warn("[BoostFPSHub] UI Creation Error:", err)
+        warn("Applying optimizations only...")
+    end
+end
 
-if not success then
-    warn("[BoostFPSHub] UI Creation Error:", err)
-    warn("Applying optimizations only...")
+-- Chạy script với error handling
+local mainSuccess, mainError = pcall(Main)
+if not mainSuccess then
+    warn("[BoostFPSHub] Fatal Error:", mainError)
 end
